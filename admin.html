@@ -3,29 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StudySpace - Admin Dashboard</title>
+    <title>StudySpace - Admin Panel</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         /* Admin Specific Styles */
-        body { background: #f8fafc; padding-bottom: 50px; }
+        body { background: #f1f5f9; padding-bottom: 50px; }
         .admin-container { max-width: 1000px; margin: 40px auto; padding: 20px; }
-        .admin-card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 30px; }
-        .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-        
-        /* Form Grid */
+        .admin-card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 30px; }
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .full-width { grid-column: span 2; }
-        
-        /* Table Styles */
-        .inventory-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        .inventory-table th { text-align: left; padding: 15px; background: #f1f5f9; color: #64748b; font-size: 0.9rem; }
-        .inventory-table td { padding: 15px; border-bottom: 1px solid #e2e8f0; }
-        .inventory-table img { width: 50px; height: 50px; border-radius: 5px; object-fit: cover; }
-        
-        /* Login Gate */
-        #login-gate { text-align: center; margin-top: 100px; }
+        .inventory-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        .inventory-table th { text-align: left; padding: 12px; background: #f8fafc; color: #64748b; font-size: 0.85rem; text-transform: uppercase; }
+        .inventory-table td { padding: 12px; border-bottom: 1px solid #e2e8f0; }
         .hidden { display: none !important; }
     </style>
 </head>
@@ -34,37 +25,42 @@
     <nav class="navbar">
         <div class="container nav-container">
             <div class="logo">
-                <div class="logo-icon"><i class="fa-solid fa-shield-halved"></i></div>
-                <span class="logo-text">Admin Panel</span>
+                <span class="logo-text">Admin Dashboard</span>
             </div>
             <a href="index.html" class="btn btn-outline">Exit to Shop</a>
         </div>
     </nav>
 
-    <div id="login-gate" class="container">
-        <div class="admin-card" style="max-width: 400px; margin: 0 auto;">
-            <i class="fa-solid fa-lock" style="font-size: 3rem; color: #cbd5e1; margin-bottom: 20px;"></i>
-            <h2>Admin Access Only</h2>
-            <p class="mb-8">Sign in with <strong>rajkumar.shrestha7025@gmail.com</strong> to manage the shop.</p>
-            <button id="admin-login-btn" class="btn btn-primary full-width">
-                <i class="fa-brands fa-google"></i> Sign in with Google
-            </button>
+    <div id="login-gate" class="container" style="text-align:center; margin-top:100px;">
+        <div class="admin-card" style="max-width:400px; margin:0 auto;">
+            <h2>Admin Login</h2>
+            <p style="margin-bottom:20px;">Restricted Access</p>
+            <button id="admin-login-btn" class="btn btn-primary full-width">Sign In with Google</button>
         </div>
     </div>
 
     <div id="admin-content" class="admin-container hidden">
         
-        <div class="admin-header">
-            <h1><i class="fa-solid fa-chart-line"></i> Dashboard</h1>
+        <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+            <h1>Dashboard</h1>
             <button id="logout-btn" class="btn btn-sm btn-outline">Log Out</button>
         </div>
 
+        <div class="admin-card" style="border-top: 4px solid #a855f7;">
+            <h3><i class="fa-solid fa-truck-fast"></i> Student Orders</h3>
+            <div style="overflow-x:auto;">
+                <table class="inventory-table">
+                    <thead><tr><th>Status</th><th>Customer</th><th>Items</th><th>Total</th><th>Action</th></tr></thead>
+                    <tbody id="orders-list"></tbody>
+                </table>
+            </div>
+        </div>
+
         <div class="admin-card">
-            <h3><i class="fa-solid fa-plus-circle"></i> Add New Product</h3>
+            <h3><i class="fa-solid fa-plus"></i> Add New Product</h3>
             <form id="add-product-form" class="form-grid">
-                <input type="text" id="p-name" class="form-input" placeholder="Product Name (e.g. Desk Lamp)" required>
+                <input type="text" id="p-name" class="form-input" placeholder="Product Name" required>
                 <input type="number" id="p-price" class="form-input" placeholder="Price ($)" step="0.01" required>
-                
                 <select id="p-category" class="form-input">
                     <option value="furniture">Furniture</option>
                     <option value="kitchen">Kitchen</option>
@@ -73,57 +69,28 @@
                     <option value="lighting">Lighting</option>
                     <option value="decor">Decor</option>
                 </select>
-                
-                <input type="number" id="p-stock" class="form-input" placeholder="Stock Quantity" required>
-                <input type="text" id="p-image" class="form-input full-width" placeholder="Image URL (Right click image -> Copy Image Address)" required>
-                
-                <button type="submit" class="btn btn-primary full-width">Upload Product</button>
+                <input type="number" id="p-stock" class="form-input" placeholder="Stock" required>
+                <input type="text" id="p-image" class="form-input full-width" placeholder="Image URL" required>
+                <button type="submit" class="btn btn-primary full-width">Add to Shop</button>
             </form>
         </div>
 
         <div class="admin-card">
             <h3><i class="fa-solid fa-boxes-stacked"></i> Current Inventory</h3>
-            <div style="overflow-x: auto;">
+            <div style="overflow-x:auto;">
                 <table class="inventory-table">
-                    <thead>
-                        <tr>
-                            <th>Image</th>
-                            <th>Name</th>
-                            <th>Price</th>
-                            <th>Stock</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="inventory-list">
-                        </tbody>
+                    <thead><tr><th>Image</th><th>Name</th><th>Price</th><th>Stock</th><th>Action</th></tr></thead>
+                    <tbody id="inventory-list"></tbody>
                 </table>
             </div>
         </div>
-        <div class="admin-card" style="border-top: 4px solid #a855f7;">
-    <h3><i class="fa-solid fa-truck-fast"></i> New Orders (To Ship)</h3>
-    <div style="overflow-x: auto;">
-        <table class="inventory-table">
-            <thead>
-                <tr>
-                    <th>Status</th>
-                    <th>Customer</th>
-                    <th>Items Ordered</th>
-                    <th>Total</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody id="orders-list">
-                </tbody>
-        </table>
-    </div>
-</div>
+
     </div>
 
     <script type="module">
-        // --- A. FIREBASE CONNECTION ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyB47wH_KObIIMAksM8TqI7norRmSK0IXnY",
@@ -139,138 +106,89 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
         const provider = new GoogleAuthProvider();
-
+        
+        // YOUR ADMIN EMAIL
         const ADMIN_EMAIL = "rajkumar.shrestha7025@gmail.com";
 
-        // --- B. AUTHENTICATION LOGIC ---
-        const loginGate = document.getElementById('login-gate');
-        const adminContent = document.getElementById('admin-content');
-
+        // Auth Logic
         document.getElementById('admin-login-btn').onclick = () => signInWithPopup(auth, provider);
         document.getElementById('logout-btn').onclick = () => signOut(auth);
 
         onAuthStateChanged(auth, (user) => {
+            const gate = document.getElementById('login-gate');
+            const content = document.getElementById('admin-content');
+            
             if (user && user.email === ADMIN_EMAIL) {
-                // User is Admin -> Show Dashboard
-                loginGate.classList.add('hidden');
-                adminContent.classList.remove('hidden');
-                loadInventory(); // Start listening for data
-            } else if (user) {
-                alert("Access Denied: You are not the admin.");
-                signOut(auth);
+                gate.classList.add('hidden');
+                content.classList.remove('hidden');
+                loadData(); // Load Products and Orders
             } else {
-                // User is logged out -> Show Lock Screen
-                loginGate.classList.remove('hidden');
-                adminContent.classList.add('hidden');
+                gate.classList.remove('hidden');
+                content.classList.add('hidden');
             }
         });
 
-        // --- C. ADD PRODUCT ---
-        document.getElementById('add-product-form').onsubmit = async (e) => {
-            e.preventDefault();
-            
-            const newProduct = {
-                name: document.getElementById('p-name').value,
-                price: parseFloat(document.getElementById('p-price').value),
-                category: document.getElementById('p-category').value,
-                stock: parseInt(document.getElementById('p-stock').value),
-                image: document.getElementById('p-image').value,
-                createdAt: new Date()
-            };
-
-            try {
-                await addDoc(collection(db, "products"), newProduct);
-                alert("Product Added Successfully!");
-                e.target.reset(); // Clear form
-            } catch (error) {
-                console.error(error);
-                alert("Error: " + error.message);
-            }
-        };
-
-        // --- D. LOAD INVENTORY (Real-time) ---
-        function loadInventory() {
-            onSnapshot(collection(db, "products"), (snapshot) => {
+        function loadData() {
+            // Load Products
+            onSnapshot(collection(db, "products"), (snap) => {
                 const list = document.getElementById('inventory-list');
-                list.innerHTML = ''; // Clear list to prevent duplicates
-                
-                snapshot.forEach(productDoc => {
-                    const p = productDoc.data();
-                    const row = document.createElement('tr');
-                    
-                    row.innerHTML = `
-                        <td><img src="${p.image}" onerror="this.src='https://via.placeholder.com/50'"></td>
-                        <td><strong>${p.name}</strong><br><small style="color:#666">${p.category}</small></td>
+                list.innerHTML = '';
+                snap.forEach(d => {
+                    const p = d.data();
+                    list.innerHTML += `<tr>
+                        <td><img src="${p.image}" style="width:40px;height:40px;object-fit:cover;"></td>
+                        <td>${p.name}</td>
                         <td>$${p.price}</td>
                         <td>${p.stock}</td>
-                        <td>
-                            <button class="btn btn-sm" style="background:#fee2e2; color:#ef4444;" onclick="deleteProduct('${productDoc.id}')">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </td>
-                    `;
-                    list.appendChild(row);
+                        <td><button onclick="deleteItem('products', '${d.id}')" style="color:red;border:none;background:none;"><i class="fa-solid fa-trash"></i></button></td>
+                    </tr>`;
+                });
+            });
+
+            // Load Orders
+            onSnapshot(collection(db, "orders"), (snap) => {
+                const list = document.getElementById('orders-list');
+                list.innerHTML = '';
+                snap.forEach(d => {
+                    const o = d.data();
+                    const statusColor = o.status === 'Shipped' ? '#dcfce7' : '#fef3c7';
+                    const actionBtn = o.status === 'Pending' 
+                        ? `<button class="btn btn-sm" onclick="shipOrder('${d.id}')" style="background:#a855f7;color:white;">Ship</button>` 
+                        : `<span style="color:green;">Completed</span>`;
+                    
+                    list.innerHTML += `<tr>
+                        <td><span style="background:${statusColor};padding:4px 8px;border-radius:10px;font-size:0.8rem;">${o.status}</span></td>
+                        <td>${o.customerName}</td>
+                        <td>${o.items.length} items</td>
+                        <td>$${o.total}</td>
+                        <td>${actionBtn}</td>
+                    </tr>`;
                 });
             });
         }
 
-        
-
-        // --- E. DELETE FUNCTION ---
-        // We attach this to 'window' so the HTML onclick="" can find it
-        window.deleteProduct = async (id) => {
-            if(confirm("Are you sure you want to delete this item?")) {
-                await deleteDoc(doc(db, "products", id));
-            }
+        // Add Product
+        document.getElementById('add-product-form').onsubmit = async (e) => {
+            e.preventDefault();
+            await addDoc(collection(db, "products"), {
+                name: document.getElementById('p-name').value,
+                price: parseFloat(document.getElementById('p-price').value),
+                category: document.getElementById('p-category').value,
+                stock: parseInt(document.getElementById('p-stock').value),
+                image: document.getElementById('p-image').value
+            });
+            e.target.reset();
+            alert("Product Added!");
         };
 
-        // --- F. LOAD ORDERS (Real-time) ---
-function loadOrders() {
-    onSnapshot(collection(db, "orders"), (snapshot) => {
-        const list = document.getElementById('orders-list');
-        list.innerHTML = ''; 
-
-        snapshot.forEach(orderDoc => {
-            const order = orderDoc.data();
-            const row = document.createElement('tr');
-            
-            // Format the list of items
-            const itemsList = order.items.map(i => `• ${i.name}`).join('<br>');
-            
-            // Color code status
-            const statusColor = order.status === 'Shipped' ? '#dcfce7' : '#fef3c7';
-            const statusText = order.status === 'Shipped' ? '#166534' : '#92400e';
-
-            row.innerHTML = `
-                <td>
-                    <span style="background:${statusColor}; color:${statusText}; padding:4px 8px; border-radius:12px; font-weight:bold; font-size:0.8rem;">
-                        ${order.status}
-                    </span>
-                </td>
-                <td>${order.customerName}<br><small>${order.createdAt.toDate().toLocaleDateString()}</small></td>
-                <td style="font-size:0.9rem; color:#4b5563;">${itemsList}</td>
-                <td><strong>$${order.total.toFixed(2)}</strong></td>
-                <td>
-                    ${order.status === 'Pending' ? 
-                        `<button class="btn btn-sm" style="background:#a855f7; color:white;" onclick="markShipped('${orderDoc.id}')">
-                            Ship Now
-                        </button>` : 
-                        `<button class="btn btn-sm" style="background:#e5e7eb; color:#9ca3af;" disabled>Completed</button>`
-                    }
-                </td>
-            `;
-            list.appendChild(row);
-        });
-    });
-}
-        window.markShipped = async (orderId) => {
-    if(confirm("Confirm that this order has been packed and shipped?")) {
-        await updateDoc(doc(db, "orders", orderId), {
-            status: "Shipped"
-        });
-    }
-};
-
+        // Global Actions
+        window.deleteItem = async (col, id) => {
+            if(confirm("Delete this?")) await deleteDoc(doc(db, col, id));
+        };
+        
+        window.shipOrder = async (id) => {
+            if(confirm("Mark as Shipped?")) await updateDoc(doc(db, "orders", id), { status: "Shipped" });
+        };
     </script>
 </body>
 </html>
