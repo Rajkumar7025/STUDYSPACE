@@ -241,3 +241,60 @@ document.addEventListener('click', (e) => {
         window.filterProducts(e.target);
     }
 });
+
+// ==========================================
+// 6. STUDENT AUTHENTICATION (The Missing Piece)
+// ==========================================
+
+// Login Function
+window.handleGoogleLogin = async function() {
+    try {
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+        
+        // (Optional) Save user to database
+        const userRef = doc(db, "users", user.uid);
+        await setDoc(userRef, {
+            name: user.displayName,
+            email: user.email,
+            lastLogin: new Date()
+        }, { merge: true });
+
+        alert(`Welcome back, ${user.displayName.split(' ')[0]}!`);
+        window.location.href = "index.html"; // Redirect to Home
+    } catch (error) {
+        console.error("Login Error:", error);
+        alert("Login Failed: " + error.message);
+    }
+}
+
+// Watch for Login State (Updates Navbar)
+onAuthStateChanged(auth, (user) => {
+    // 1. Update Sign In Page Text
+    const authSubtitle = document.getElementById('auth-subtitle');
+    if (user && authSubtitle) {
+        authSubtitle.innerText = `You are signed in as ${user.email}`;
+    }
+
+    // 2. Update Navbar Button (if it exists)
+    const navBtn = document.getElementById('nav-signin-btn');
+    if (navBtn) {
+        if (user) {
+            navBtn.innerHTML = `<i class="fa-solid fa-user"></i> ${user.displayName.split(' ')[0]}`;
+            navBtn.href = "#";
+            navBtn.onclick = (e) => {
+                e.preventDefault();
+                if(confirm("Sign out?")) {
+                    signOut(auth).then(() => window.location.reload());
+                }
+            };
+        } else {
+            navBtn.innerHTML = "Sign In";
+            navBtn.href = "signin.html";
+            navBtn.onclick = null; // Remove signout listener
+        }
+    }
+});
+
+// Import setDoc since we used it above
+import { setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
