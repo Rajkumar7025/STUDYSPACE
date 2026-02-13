@@ -5,8 +5,12 @@ document.addEventListener("DOMContentLoaded", function() {
         .then(response => response.text())
         .then(data => {
             document.getElementById("navbar-placeholder").innerHTML = data;
-            setActiveLink(); // Highlight current page
-            initializeMobileMenu(); // Re-attach mobile menu logic
+            setActiveLink(); 
+            initializeMobileMenu(); 
+            initializeCartUI(); // <--- NEW: Initialize Cart AFTER loading navbar
+            
+            // Dispatch event to tell script.js that navbar is ready
+            document.dispatchEvent(new Event('navbarLoaded'));
         });
 
     // 2. Load Footer
@@ -17,20 +21,16 @@ document.addEventListener("DOMContentLoaded", function() {
         });
 });
 
-// Function to set the 'active' class on the current link
 function setActiveLink() {
     const path = window.location.pathname;
-    const page = path.split("/").pop(); // Get filename (e.g., 'about.html')
-
-    // Map filenames to IDs
+    const page = path.split("/").pop(); 
     const links = {
         "index.html": "link-home",
-        "": "link-home", // For root url
+        "": "link-home",
         "products.html": "link-products",
         "about.html": "link-about",
         "contact.html": "link-contact"
     };
-
     const activeId = links[page];
     if (activeId) {
         const link = document.getElementById(activeId);
@@ -38,7 +38,6 @@ function setActiveLink() {
     }
 }
 
-// Function to make the mobile menu work after it's loaded
 function initializeMobileMenu() {
     const hamburger = document.getElementById('hamburger');
     const mobileMenu = document.getElementById('mobile-menu');
@@ -56,4 +55,29 @@ function initializeMobileMenu() {
             }
         });
     }
+}
+
+// NEW: Explicitly handles opening/closing the cart visual
+function initializeCartUI() {
+    const openBtn = document.getElementById('open-cart-btn');
+    const closeBtn = document.getElementById('close-cart-btn');
+    const sidebar = document.getElementById('cart-sidebar');
+    const overlay = document.getElementById('cart-overlay');
+
+    function toggleCart(show) {
+        if(show) {
+            sidebar.classList.add('open');
+            overlay.classList.add('open');
+        } else {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('open');
+        }
+    }
+
+    if(openBtn) openBtn.addEventListener('click', () => toggleCart(true));
+    if(closeBtn) closeBtn.addEventListener('click', () => toggleCart(false));
+    if(overlay) overlay.addEventListener('click', () => toggleCart(false));
+
+    // Listen for custom event from other scripts to open cart
+    document.addEventListener('openCart', () => toggleCart(true));
 }
