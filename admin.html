@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudySpace - Admin Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .admin-table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; border-radius: 8px; overflow: hidden; }
+        .admin-table th, .admin-table td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; }
+        .admin-table th { background: var(--primary-color); color: white; }
+        .status-badge { padding: 5px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; }
+        .status-pending { background: #fef3c7; color: #92400e; }
+        .status-shipped { background: #dcfce7; color: #16a34a; }
+    </style>
+</head>
+<body>
+    <div class="container" style="padding: 50px 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+            <h1><i class="fa-solid fa-lock"></i> Admin Order Manager</h1>
+            <a href="index.html" class="btn btn-outline">Back to Shop</a>
+        </div>
+
+        <div id="admin-orders-list">
+            <p>Loading orders from database...</p>
+        </div>
+    </div>
+
+    <script type="module" src="script.js"></script>
+    <script type="module">
+        // Specific logic just for this admin page
+        import { getFirestore, collection, onSnapshot, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        const db = getFirestore();
+
+        // Listen for live updates to the "orders" collection
+        onSnapshot(collection(db, "orders"), (snapshot) => {
+            const container = document.getElementById('admin-orders-list');
+            if (snapshot.empty) {
+                container.innerHTML = "<p>No orders yet. Keep marketing!</p>";
+                return;
+            }
+
+            let html = `
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Items</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            snapshot.forEach((orderDoc) => {
+                const order = orderDoc.data();
+                const id = orderDoc.id;
+                const itemList = order.items.map(i => i.name).join(', ');
+                const statusClass = order.status === 'Shipped' ? 'status-shipped' : 'status-pending';
+
+                html += `
+                    <tr>
+                        <td><strong>${order.customerName}</strong><br><small>${order.customerEmail}</small></td>
+                        <td>${itemList}</td>
+                        <td>$${order.subtotal.toFixed(2)}</td>
+                        <td><span class="status-badge ${statusClass}">${order.status}</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-primary" onclick="updateOrderStatus('${id}', 'Shipped')">Mark Shipped</button>
+                            <button class="btn btn-sm" style="color:red; background:none;" onclick="deleteOrder('${id}')"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += `</tbody></table>`;
+            container.innerHTML = html;
+        });
+
+        // Global functions for the buttons
+        window.updateOrderStatus = async (id, newStatus) => {
+            await updateDoc(doc(db, "orders", id), { status: newStatus });
+            alert("Order status updated!");
+        };
+
+        window.deleteOrder = async (id) => {
+            if(confirm("Are you sure you want to delete this order record?")) {
+                await deleteDoc(doc(db, "orders", id));
+            }
+        };
+    </script>
+</body>
+</html>
