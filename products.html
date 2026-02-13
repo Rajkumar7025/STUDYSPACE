@@ -21,13 +21,13 @@
     <section class="container" style="min-height: 60vh;">
         
         <div class="filter-container">
-            <button class="filter-btn active" data-filter="all">All</button>
-            <button class="filter-btn" data-filter="furniture">Furniture</button>
-            <button class="filter-btn" data-filter="kitchen">Kitchen</button>
-            <button class="filter-btn" data-filter="bedding">Bedding</button>
-            <button class="filter-btn" data-filter="storage">Storage</button>
-            <button class="filter-btn" data-filter="lighting">Lighting</button>
-            <button class="filter-btn" data-filter="decor">Decor</button>
+            <button class="filter-btn active" data-filter="all" onclick="filterProducts(this)">All</button>
+            <button class="filter-btn" data-filter="furniture" onclick="filterProducts(this)">Furniture</button>
+            <button class="filter-btn" data-filter="kitchen" onclick="filterProducts(this)">Kitchen</button>
+            <button class="filter-btn" data-filter="bedding" onclick="filterProducts(this)">Bedding</button>
+            <button class="filter-btn" data-filter="storage" onclick="filterProducts(this)">Storage</button>
+            <button class="filter-btn" data-filter="lighting" onclick="filterProducts(this)">Lighting</button>
+            <button class="filter-btn" data-filter="decor" onclick="filterProducts(this)">Decor</button>
         </div>
 
         <div class="product-grid">
@@ -40,21 +40,18 @@
     <div class="checkout-modal" id="checkout-modal">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
             <h2>Confirm Order</h2>
-            <button onclick="window.closeCheckout()" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+            <button onclick="closeCheckout()" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
         </div>
         
-        <div id="checkout-summary" style="background:#f9fafb; padding:15px; border-radius:8px; margin-bottom:20px;">
-            </div>
+        <div id="checkout-summary" style="margin-bottom:20px;"></div>
 
-        <form onsubmit="window.processPayment(event)">
+        <form onsubmit="processPayment(event)">
             <label style="display:block; margin-bottom:5px; font-weight:600;">Card Details</label>
             <input type="text" placeholder="0000 0000 0000 0000" class="form-input" required maxlength="19">
-            
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
                 <input type="text" placeholder="MM/YY" class="form-input" required maxlength="5">
                 <input type="text" placeholder="CVC" class="form-input" required maxlength="3">
             </div>
-
             <button type="submit" class="btn btn-primary full-width">Pay Now</button>
         </form>
     </div>
