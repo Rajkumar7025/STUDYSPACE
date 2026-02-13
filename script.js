@@ -3,7 +3,8 @@
 // ==========================================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+// ADD collection, addDoc, and serverTimestamp BELOW
+import { getFirestore, doc, setDoc, getDoc, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 // Your Web App's Firebase Configuration
 const firebaseConfig = {
@@ -324,3 +325,64 @@ window.processPayment = (e) => {
 document.addEventListener('click', (e) => {
     if(e.target.innerText === 'Checkout' && e.target.closest('.cart-footer')) window.openCheckout();
 });
+
+window.processPayment = async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('pay-btn');
+    const user = auth.currentUser;
+    
+    btn.innerText = "Processing Order...";
+    btn.disabled = true;
+
+    try {
+        // 1. Create the Order Object for the Admin
+        const orderData = {
+            userId: user ? user.uid : "guest",
+            customerName: user ? user.displayName : "Guest Student",
+            customerEmail: user ? user.email : "Not Provided",
+            items: cart, // The full list of items
+            subtotal: cart.reduce((s, i) => s + i.price, 0),
+            status: "Pending Shipping", // Tells the admin to take action
+            createdAt: serverTimestamp()
+        };
+
+        // 2. Save to Firebase "Orders" Collection
+        await addDoc(collection(db, "orders"), orderData);
+
+        // 3. Success UI
+        window.closeCheckout();
+        cart = []; 
+        saveCart(); 
+        showToast("Order Successful! Admin has been notified.");
+        
+        // 4. Show the "Success Message" to the User
+        renderSuccessMessage(orderData.customerEmail);
+
+    } catch (error) {
+        console.error("Order Error:", error);
+        alert("Transaction failed. Please try again.");
+    } finally {
+        btn.innerText = "Pay Now";
+        btn.disabled = false;
+    }
+};
+
+function renderSuccessMessage(email) {
+    const container = document.querySelector('.section') || document.body;
+    container.innerHTML = `
+        <div class="container text-center" style="padding: 100px 20px;">
+            <div class="icon-circle bg-green" style="margin: 0 auto 30px; width: 100px; height: 100px; font-size: 3rem;">
+                <i class="fa-solid fa-truck-fast"></i>
+            </div>
+            <h1 style="font-size: 2.5rem; margin-bottom: 20px;">Order Confirmed!</h1>
+            <p style="font-size: 1.2rem; color: #6b7280; max-width: 600px; margin: 0 auto 30px;">
+                Thank you for shopping with StudySpace. We've sent a confirmation to <strong>${email}</strong>.
+                Our team is currently preparing your items for delivery to your accommodation.
+            </p>
+            <div style="display: flex; gap: 15px; justify-content: center;">
+                <a href="index.html" class="btn btn-primary">Back to Home</a>
+                <a href="products.html" class="btn btn-outline">Shop More</a>
+            </div>
+        </div>
+    `;
+}
