@@ -1,5 +1,5 @@
 // ==========================================
-// 1. FIREBASE SETUP & IMPORTS
+// 1. FIREBASE IMPORTS
 // ==========================================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -25,6 +25,7 @@ const provider = new GoogleAuthProvider();
 // ==========================================
 let productsData = []; 
 let cart = JSON.parse(localStorage.getItem('studySpaceCart')) || [];
+let currentFilter = 'all'; // Track active filter
 
 // Sync Products from Database
 onSnapshot(collection(db, "products"), (snapshot) => {
@@ -32,53 +33,39 @@ onSnapshot(collection(db, "products"), (snapshot) => {
         id: doc.id,
         ...doc.data()
     }));
-    renderAllProducts(); 
+    // Once data arrives, render with current filter
+    renderProducts(currentFilter);
 });
 
 // ==========================================
-// 3. AUTHENTICATION
+// 3. RENDERING & FILTERING (FIXED)
 // ==========================================
-window.handleGoogleLogin = async function() {
-    try {
-        const result = await signInWithPopup(auth, provider);
-        const user = result.user;
-        await setDoc(doc(db, "users", user.uid), {
-            name: user.displayName, email: user.email, lastLogin: new Date()
-        }, { merge: true });
-        showToast(`Welcome, ${user.displayName.split(' ')[0]}!`);
-        if(window.location.pathname.includes('signin.html')) window.location.href = "index.html";
-    } catch (error) { alert(error.message); }
-}
-
-onAuthStateChanged(auth, async (user) => {
-    const navBtn = document.getElementById('nav-signin-btn');
-    if (user && navBtn) {
-        navBtn.innerHTML = `<i class="fa-regular fa-user"></i> Hi, ${user.displayName.split(' ')[0]}`;
-        navBtn.onclick = (e) => {
-            e.preventDefault();
-            if(confirm("Log out?")) signOut(auth).then(() => window.location.reload());
-        };
-    }
-});
-
-// ==========================================
-// 4. RENDERING & FILTERING
-// ==========================================
-function renderAllProducts() {
+function renderProducts(filterType) {
     const productGrid = document.querySelector('.product-grid');
     if (!productGrid) return;
 
+    // Filter Data Logic
+    // Matches if filter is 'all' OR product category matches exactly (case insensitive)
+    const filteredItems = productsData.filter(product => {
+        if (filterType === 'all') return true;
+        return product.category && product.category.toLowerCase() === filterType.toLowerCase();
+    });
+
     productGrid.innerHTML = '';
-    productsData.forEach(product => {
+    
+    if (filteredItems.length === 0) {
+        productGrid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; font-size: 1.2rem;">No products found in this category.</p>';
+        return;
+    }
+
+    filteredItems.forEach(product => {
         const isOutOfStock = product.stock <= 0;
         const card = document.createElement('div');
-        // IMPORTANT: data-category is needed for filtering
         card.className = `product-card ${isOutOfStock ? 'out-of-stock' : ''}`;
-        card.setAttribute('data-category', product.category.toLowerCase());
         
         card.innerHTML = `
             <div class="product-image">
-                <img src="${product.image}" alt="${product.name}">
+                <img src="${product.image}" alt="${product.name}" loading="lazy">
                 ${isOutOfStock ? '<div class="sold-out-overlay">SOLD OUT</div>' : ''}
             </div>
             <div class="product-info">
@@ -97,86 +84,124 @@ function renderAllProducts() {
     });
 }
 
-// Filter Logic
+// Event Delegation for Filter Buttons
 document.addEventListener('click', (e) => {
     if (e.target.classList.contains('filter-btn')) {
-        const btns = document.querySelectorAll('.filter-btn');
-        btns.forEach(b => b.classList.remove('active'));
+        // 1. Update Visuals
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
         e.target.classList.add('active');
 
-        const filter = e.target.getAttribute('data-filter');
-        document.querySelectorAll('.product-card').forEach(card => {
-            const cat = card.getAttribute('data-category');
-            card.style.display = (filter === 'all' || cat === filter) ? "block" : "none";
-        });
+        // 2. Apply Filter
+        currentFilter = e.target.getAttribute('data-filter');
+        renderProducts(currentFilter);
     }
 });
 
 // ==========================================
-// 5. CART & CHECKOUT
+// 4. CART LOGIC (GLOBAL)
 // ==========================================
+// Make addToCart global so HTML onclick works
 window.addToCart = function(id) {
     const p = productsData.find(item => item.id === id);
     if (p && p.stock > 0) {
         cart.push(p);
-        localStorage.setItem('studySpaceCart', JSON.stringify(cart));
-        updateCartUI();
-        showToast("Added to cart!");
+        saveCart();
+        showToast(`Added ${p.name} to cart!`);
+        
+        // Optional: Open cart immediately
+        document.dispatchEvent(new Event('openCart')); 
     }
-}
-
-function updateCartUI() {
-    const count = document.getElementById('cart-count');
-    if(count) count.innerText = cart.length;
-
-    const container = document.getElementById('cart-items-container');
-    const totalEl = document.getElementById('cart-total');
-    if(container && totalEl) {
-        container.innerHTML = '';
-        let total = 0;
-        cart.forEach((item, idx) => {
-            total += item.price;
-            container.innerHTML += `<div class="cart-item">
-                <img src="${item.image}">
-                <div class="cart-item-info">
-                    <h4>${item.name}</h4>
-                    <div class="price">$${item.price.toFixed(2)}</div>
-                </div>
-            </div>`;
-        });
-        totalEl.innerText = '$' + total.toFixed(2);
-    }
-}
-
-window.openCheckout = function() {
-    if(cart.length === 0) return alert("Cart is empty!");
-    document.getElementById('checkout-modal').classList.add('active');
-    document.getElementById('checkout-overlay').classList.add('active');
-}
-
-window.closeCheckout = () => {
-    document.getElementById('checkout-modal').classList.remove('active');
-    document.getElementById('checkout-overlay').classList.remove('active');
-}
-
-window.processPayment = async (e) => {
-    e.preventDefault();
-    try {
-        const orderData = { items: cart, subtotal: cart.reduce((s,i)=>s+i.price,0), createdAt: serverTimestamp() };
-        await addDoc(collection(db, "orders"), orderData);
-        for (const item of cart) {
-            await updateDoc(doc(db, "products", item.id), { stock: increment(-1) });
-        }
-        cart = []; localStorage.removeItem('studySpaceCart');
-        window.location.reload(); 
-        alert("Order Successful!");
-    } catch (err) { alert(err.message); }
 };
 
+window.removeFromCart = function(index) {
+    cart.splice(index, 1);
+    saveCart();
+};
+
+function saveCart() {
+    localStorage.setItem('studySpaceCart', JSON.stringify(cart));
+    updateCartUI();
+}
+
+// Note: This updates the CONTENTS of the cart sidebar
+function updateCartUI() {
+    const countBadge = document.getElementById('cart-count');
+    const container = document.getElementById('cart-items-container');
+    const totalEl = document.getElementById('cart-total');
+    
+    // If navbar hasn't loaded yet, these might be null. 
+    // We retry or check existence.
+    if (!container) return; 
+
+    if (countBadge) countBadge.innerText = cart.length;
+
+    container.innerHTML = '';
+    let total = 0;
+    
+    if (cart.length === 0) {
+        container.innerHTML = '<p style="text-align:center; color:#888; margin-top:20px;">Your cart is empty.</p>';
+    } else {
+        cart.forEach((item, index) => {
+            total += item.price;
+            container.innerHTML += `
+            <div class="cart-item">
+                <img src="${item.image}" style="width:50px; height:50px; border-radius:5px; object-fit:cover;">
+                <div style="flex:1;">
+                    <h4 style="font-size:0.9rem; margin:0;">${item.name}</h4>
+                    <div class="price" style="font-size:0.9rem;">$${item.price.toFixed(2)}</div>
+                </div>
+                <button onclick="removeFromCart(${index})" style="background:none; border:none; color:#ef4444; cursor:pointer;">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            </div>`;
+        });
+    }
+    
+    if(totalEl) totalEl.innerText = '$' + total.toFixed(2);
+}
+
+// Listen for Navbar Load to refresh cart count
+document.addEventListener('navbarLoaded', updateCartUI);
+
+// ==========================================
+// 5. AUTH & CHECKOUT
+// ==========================================
+window.handleGoogleLogin = async function() {
+    try {
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+        // Save user to 'users' collection (matches your rules)
+        await setDoc(doc(db, "users", user.uid), {
+            name: user.displayName, 
+            email: user.email, 
+            lastLogin: serverTimestamp()
+        }, { merge: true });
+        
+        showToast(`Welcome, ${user.displayName.split(' ')[0]}!`);
+        setTimeout(() => window.location.href = "index.html", 1000);
+    } catch (error) { alert(error.message); }
+}
+
+onAuthStateChanged(auth, async (user) => {
+    const navBtn = document.getElementById('nav-signin-btn');
+    if (user && navBtn) {
+        navBtn.innerHTML = `<i class="fa-regular fa-user"></i> ${user.displayName.split(' ')[0]}`;
+        navBtn.onclick = (e) => {
+            e.preventDefault();
+            if(confirm("Log out?")) signOut(auth).then(() => window.location.reload());
+        };
+    }
+});
+
+// Toast Notification Helper
 function showToast(msg) {
+    // Remove existing toast if any
+    const existing = document.querySelector('.toast');
+    if(existing) existing.remove();
+
     const t = document.createElement('div');
     t.className = 'toast show';
-    t.innerText = msg;
+    t.innerHTML = `<i class="fa-solid fa-check-circle"></i> ${msg}`;
     document.body.appendChild(t);
-    setTimeout(() => t.remove(), 2000);
+    setTimeout(() => t.remove(), 3000);
 }
