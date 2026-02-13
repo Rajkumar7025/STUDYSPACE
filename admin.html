@@ -81,7 +81,6 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // AUTHORIZED ADMIN EMAIL
         const ADMIN_EMAIL = 'rajkumar.shrestha7025@gmail.com'; 
 
         onAuthStateChanged(auth, (user) => {
@@ -91,15 +90,11 @@
                 loadProducts();
                 loadOrders();
             } else {
-                document.getElementById('auth-gate').innerHTML = `
-                    <h1 style="color:#ef4444;">Access Denied</h1>
-                    <p>Only <strong>${ADMIN_EMAIL}</strong> can access this panel.</p>
-                    <a href="signin.html" class="btn btn-primary" style="margin-top:20px;">Sign in as Admin</a>
-                `;
+                document.getElementById('auth-gate').innerHTML = `<h1 style="color:#ef4444;">Access Denied</h1><p>Only <strong>${ADMIN_EMAIL}</strong> can access this panel.</p><a href="signin.html" class="btn btn-primary">Sign in as Admin</a>`;
             }
         });
 
-        // Add Product Logic
+        // Add Product
         document.getElementById('add-product-form').onsubmit = async (e) => {
             e.preventDefault();
             const newProduct = {
@@ -116,22 +111,42 @@
             } catch (err) { alert("Error: " + err.message); }
         };
 
+        // Load Products with Edit/Delete Buttons
         function loadProducts() {
             onSnapshot(collection(db, "products"), (snapshot) => {
                 const container = document.getElementById('admin-product-list');
-                let html = `<table class="admin-table"><thead><tr><th>Img</th><th>Name</th><th>Stock</th><th>Action</th></tr></thead><tbody>`;
+                let html = `<table class="admin-table"><thead><tr><th>Img</th><th>Name/Price</th><th>Stock</th><th>Action</th></tr></thead><tbody>`;
                 snapshot.forEach(pDoc => {
                     const p = pDoc.data();
                     html += `<tr>
                         <td><img src="${p.image}" style="width:40px;height:40px;object-fit:cover;border-radius:4px;"></td>
                         <td><strong>${p.name}</strong><br>$${p.price.toFixed(2)}</td>
                         <td>${p.stock}</td>
-                        <td><button class="btn btn-sm" style="color:#ef4444;background:none;" onclick="deleteProduct('${pDoc.id}')"><i class="fa-solid fa-trash"></i></button></td>
+                        <td style="display:flex; gap:10px;">
+                            <button class="btn btn-sm" style="background:#f1f5f9; color:#475569;" onclick="editProduct('${pDoc.id}', '${p.name}', ${p.price}, ${p.stock})">Edit</button>
+                            <button class="btn btn-sm" style="color:#ef4444;background:none;" onclick="deleteProduct('${pDoc.id}')"><i class="fa-solid fa-trash"></i></button>
+                        </td>
                     </tr>`;
                 });
                 container.innerHTML = html + `</tbody></table>`;
             });
         }
+
+        // Edit Function
+        window.editProduct = async (id, oldName, oldPrice, oldStock) => {
+            const newPrice = prompt(`Enter new price for ${oldName}:`, oldPrice);
+            const newStock = prompt(`Enter new stock count for ${oldName}:`, oldStock);
+            
+            if (newPrice !== null && newStock !== null) {
+                try {
+                    await updateDoc(doc(db, "products", id), {
+                        price: parseFloat(newPrice),
+                        stock: parseInt(newStock)
+                    });
+                    alert("Updated Successfully!");
+                } catch (err) { alert("Update failed: " + err.message); }
+            }
+        };
 
         window.deleteProduct = async (id) => {
             if(confirm("Delete this product?")) await deleteDoc(doc(db, "products", id));
