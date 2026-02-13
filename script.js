@@ -27,7 +27,7 @@ const provider = new GoogleAuthProvider();
 // 2. PRODUCT DATA (The Inventory)
 // ==========================================
 const productsData = [
-    { id: 1, name: "Study Desk & Chair", category: "furniture", price: 149.99, image: "https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?w=500&q=80" },
+    { id: 1, name: "Study Desk & Chair", category: "furniture", price: 0.00, image: "https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?w=500&q=80" },
     { id: 2, name: "Cozy Bedding Set", category: "bedding", price: 79.99, image: "https://images.unsplash.com/photo-1522771753035-1a5b65a9f176?w=500&q=80" },
     { id: 3, name: "Kitchen Starter Pack", category: "kitchen", price: 89.99, image: "https://images.unsplash.com/photo-1584622050111-993a426fbf0a?w=500&q=80" },
     { id: 4, name: "Under-bed Storage", category: "storage", price: 29.99, image: "https://images.unsplash.com/photo-1622445275576-721325763afe?w=500&q=80" },
@@ -386,3 +386,4 @@ function renderSuccessMessage(email) {
         </div>
     `;
 }
+
