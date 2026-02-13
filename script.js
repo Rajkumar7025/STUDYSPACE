@@ -387,3 +387,22 @@ function renderSuccessMessage(email) {
     `;
 }
 
+window.renderSuccessMessage = function(email) {
+    const container = document.querySelector('.section') || document.body;
+    container.innerHTML = `
+        <div class="container text-center" style="padding: 100px 20px;">
+            <div class="icon-circle" style="margin: 0 auto 30px; width: 100px; height: 100px; font-size: 3rem; background: #dcfce7; color: #16a34a; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <i class="fa-solid fa-envelope-circle-check"></i>
+            </div>
+            <h1 style="font-size: 2.5rem; margin-bottom: 20px;">Check your Inbox!</h1>
+            <p style="font-size: 1.2rem; color: #6b7280; max-width: 600px; margin: 0 auto 30px;">
+                A confirmation email has been sent to <strong>${email}</strong>. 
+                Our team is now preparing your items for delivery.
+            </p>
+            <div style="display: flex; gap: 15px; justify-content: center;">
+                <a href="index.html" class="btn btn-primary">Continue Shopping</a>
+            </div>
+        </div>
+    `;
+}
+
