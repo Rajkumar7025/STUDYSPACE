@@ -5,8 +5,8 @@ document.addEventListener("DOMContentLoaded", function() {
         .then(response => response.text())
         .then(data => {
             document.getElementById("navbar-placeholder").innerHTML = data;
-            setActiveLink(); // Highlight current page
-            initializeMobileMenu(); // Re-attach mobile menu logic
+            setActiveLink();
+            // No need to initialize listeners here anymore because of Event Delegation below
         });
 
     // 2. Load Footer
@@ -17,43 +17,71 @@ document.addEventListener("DOMContentLoaded", function() {
         });
 });
 
-// Function to set the 'active' class on the current link
+// =========================================
+// GLOBAL EVENT LISTENER (THE FIX)
+// =========================================
+document.addEventListener('click', function(e) {
+    
+    // 1. OPEN CART (Clicking the cart icon or wrapper)
+    if (e.target.closest('#open-cart-btn') || e.target.closest('.cart-icon-wrapper')) {
+        toggleCart(true);
+    }
+
+    // 2. CLOSE CART (Clicking the X or the Overlay)
+    if (e.target.closest('#close-cart-btn') || e.target.id === 'cart-overlay') {
+        toggleCart(false);
+    }
+
+    // 3. MOBILE MENU TOGGLE
+    if (e.target.closest('#hamburger')) {
+        const menu = document.getElementById('mobile-menu');
+        const icon = document.querySelector('#hamburger i');
+        menu.classList.toggle('open');
+        
+        if (menu.classList.contains('open')) {
+            icon.classList.remove('fa-bars');
+            icon.classList.add('fa-xmark');
+        } else {
+            icon.classList.remove('fa-xmark');
+            icon.classList.add('fa-bars');
+        }
+    }
+
+    // 4. CHECKOUT BUTTON (Inside the cart)
+    if (e.target.closest('#checkout-btn')) {
+         // Calls the function in script.js
+         if(window.openCheckout) window.openCheckout();
+    }
+});
+
+// Helper Function
+function toggleCart(show) {
+    const sidebar = document.getElementById('cart-sidebar');
+    const overlay = document.getElementById('cart-overlay');
+    
+    if (sidebar && overlay) {
+        if(show) {
+            sidebar.classList.add('open');
+            overlay.classList.add('open');
+        } else {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('open');
+        }
+    }
+}
+
 function setActiveLink() {
     const path = window.location.pathname;
-    const page = path.split("/").pop(); // Get filename (e.g., 'about.html')
-
-    // Map filenames to IDs
+    const page = path.split("/").pop();
     const links = {
         "index.html": "link-home",
-        "": "link-home", // For root url
+        "": "link-home",
         "products.html": "link-products",
         "about.html": "link-about",
         "contact.html": "link-contact"
     };
-
-    const activeId = links[page];
-    if (activeId) {
-        const link = document.getElementById(activeId);
+    if (links[page]) {
+        const link = document.getElementById(links[page]);
         if(link) link.classList.add("active");
-    }
-}
-
-// Function to make the mobile menu work after it's loaded
-function initializeMobileMenu() {
-    const hamburger = document.getElementById('hamburger');
-    const mobileMenu = document.getElementById('mobile-menu');
-
-    if(hamburger) {
-        hamburger.addEventListener('click', () => {
-            mobileMenu.classList.toggle('open');
-            const icon = hamburger.querySelector('i');
-            if (mobileMenu.classList.contains('open')) {
-                icon.classList.remove('fa-bars');
-                icon.classList.add('fa-xmark');
-            } else {
-                icon.classList.remove('fa-xmark');
-                icon.classList.add('fa-bars');
-            }
-        });
     }
 }
