@@ -3,7 +3,8 @@
 // ==========================================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+// ADD collection, addDoc, and serverTimestamp BELOW
+import { getFirestore, doc, setDoc, getDoc, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 // Your Specific Configuration
 const firebaseConfig = {
@@ -358,4 +359,5 @@ document.addEventListener('click', function(e){
     if(e.target && e.target.innerText === 'Checkout' && e.target.closest('.cart-footer')){
         window.openCheckout();
     }
+
 });
