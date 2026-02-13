@@ -183,10 +183,46 @@ window.closeCheckout = function() {
     document.getElementById('checkout-overlay').classList.remove('active');
 }
 
-window.processPayment = function(e) {
+// ==========================================
+// REPLACE YOUR EXISTING processPayment FUNCTION
+// ==========================================
+window.processPayment = async function(e) {
     e.preventDefault();
-    alert("Order Placed! (This is a demo)");
-    cart = [];
-    updateCart();
-    window.closeCheckout();
+    
+    if(cart.length === 0) return alert("Cart is empty!");
+
+    // 1. Collect Order Details
+    const orderData = {
+        customerName: "Guest Student", // You can add an input field for this later
+        customerEmail: "student@example.com",
+        items: cart, // Saves the whole cart array
+        total: cart.reduce((sum, item) => sum + Number(item.price), 0),
+        status: "Pending", // Default status
+        createdAt: new Date() // Timestamp
+    };
+
+    try {
+        // 2. Save Order to 'orders' Collection
+        await addDoc(collection(db, "orders"), orderData);
+
+        // 3. Reduce Stock for Each Item
+        // We loop through the cart and update the 'products' collection
+        for (const item of cart) {
+            const productRef = doc(db, "products", item.id);
+            await updateDoc(productRef, {
+                stock: increment(-1) // Magically subtracts 1 from current stock
+            });
+        }
+
+        // 4. Success!
+        alert("✅ Order Placed! We have received your order.");
+        cart = []; // Clear local cart
+        updateCart(); // Update UI
+        window.closeCheckout(); // Close modal
+
+    } catch (error) {
+        console.error("Order Failed:", error);
+        alert("❌ Error placing order: " + error.message);
+    }
 }
+
