@@ -3,54 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StudySpace - Sign In</title>
+    <title>StudySpace - Student Login</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body style="background: linear-gradient(to bottom, #fff 0%, #fdf4ff 100%);">
+<body style="background: #f3f4f6;">
+    
     <div id="navbar-placeholder"></div>
 
-    <div class="auth-container">
-        <div class="auth-card">
-            <div class="text-center mb-8">
-                <h1 style="margin-bottom:10px;">Welcome Back</h1>
-                <p id="auth-subtitle" style="color:#6b7280;">Sign in to continue shopping</p>
-            </div>
-
-            <div style="background:#f3f4f6; padding:5px; border-radius:50px; display:flex; margin-bottom:30px;">
-                <button class="auth-toggle-btn active" style="flex:1; padding:10px; border:none; background:white; border-radius:50px; cursor:pointer;" onclick="switchAuth('login')">Login</button>
-                <button class="auth-toggle-btn" style="flex:1; padding:10px; border:none; background:transparent; border-radius:50px; cursor:pointer;" onclick="switchAuth('register')">Register</button>
-            </div>
-
-            <form id="auth-form">
-                <div class="hidden" id="field-name">
-                    <input type="text" placeholder="Full Name" class="form-input">
+    <div class="container" style="min-height: 80vh; display: flex; align-items: center; justify-content: center;">
+        <div class="admin-card" style="width: 100%; max-width: 400px; text-align: center; padding: 40px;">
+            
+            <div style="margin-bottom: 30px;">
+                <div style="width: 60px; height: 60px; background: var(--primary-gradient); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin: 0 auto 15px;">
+                    <i class="fa-solid fa-user-graduate"></i>
                 </div>
-                <input type="email" placeholder="Email Address" class="form-input">
-                <input type="password" placeholder="Password" class="form-input">
-                <div class="hidden" id="field-confirm-pass">
-                    <input type="password" placeholder="Confirm Password" class="form-input">
-                </div>
-
-                <button type="button" class="btn btn-primary full-width" id="auth-submit-btn" onclick="handleAuth()">Sign In</button>
-                <div class="auth-divider">
-                <span>Or continue with</span>
+                <h1>Welcome Student</h1>
+                <p id="auth-subtitle" style="color: #666;">Sign in to save your cart and track orders.</p>
             </div>
 
-            <div class="social-stack">
-                <button type="button" class="social-btn" onclick="handleGoogleLogin()">
-                    <i class="fa-brands fa-google" style="color:#DB4437; margin-right: 10px;"></i> Continue with Google
-                </button>
-            </div>
-            </form>
+            <button onclick="handleGoogleLogin()" class="btn btn-outline full-width" style="display: flex; align-items: center; justify-content: center; gap: 10px; padding: 12px; margin-bottom: 20px;">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20">
+                Continue with Google
+            </button>
 
-           
+            <div style="display: flex; align-items: center; margin: 20px 0; color: #999;">
+                <div style="flex: 1; height: 1px; background: #ddd;"></div>
+                <span style="padding: 0 10px; font-size: 0.8rem;">OR</span>
+                <div style="flex: 1; height: 1px; background: #ddd;"></div>
+            </div>
+
+            <a href="index.html" style="color: var(--primary-color); font-weight: 600; font-size: 0.9rem;">Continue as Guest</a>
+
         </div>
     </div>
 
     <div id="footer-placeholder"></div>
-    <script type="module" src="script.js"></script>
-    <script src="main.js"></script>
-</body>
 
+    <script src="main.js"></script>
+    <script type="module" src="script.js"></script>
+
+</body>
 </html>
