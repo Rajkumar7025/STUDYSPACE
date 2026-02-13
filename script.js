@@ -1,11 +1,11 @@
 // ==========================================
-// 1. FIREBASE SETUP (The Backend Brain)
+// 1. FIREBASE SETUP & IMPORTS
 // ==========================================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// Your Specific Configuration
+// Your Web App's Firebase Configuration
 const firebaseConfig = {
   apiKey: "AIzaSyB47wH_KObIIMAksM8TqI7norRmSK0IXnY",
   authDomain: "studyspace-backend.firebaseapp.com",
@@ -23,82 +23,7 @@ const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
 // ==========================================
-// 2. AUTHENTICATION LOGIC (Google Login)
-// ==========================================
-
-// Function to handle Google Login
-window.handleGoogleLogin = async function() {
-    try {
-        const result = await signInWithPopup(auth, provider);
-        const user = result.user;
-        
-        // Save user to database (Firestore)
-        await setDoc(doc(db, "users", user.uid), {
-            name: user.displayName,
-            email: user.email,
-            lastLogin: new Date()
-        }, { merge: true });
-
-        showToast(`Welcome, ${user.displayName.split(' ')[0]}!`);
-        
-        // Redirect if on signin page
-        if(window.location.pathname.includes('signin.html')) {
-            setTimeout(() => window.location.href = "index.html", 1000);
-        }
-
-    } catch (error) {
-        console.error("Login Error:", error);
-        alert("Login failed: " + error.message);
-    }
-}
-
-// Function to handle Logout
-window.handleLogout = async function() {
-    try {
-        await signOut(auth);
-        showToast("Logged out successfully");
-        // Reload page to reset UI
-        setTimeout(() => window.location.reload(), 1000);
-    } catch (error) {
-        console.error("Logout Error:", error);
-    }
-}
-
-// Listen for Login State Changes (Runs automatically)
-onAuthStateChanged(auth, (user) => {
-    const navBtn = document.getElementById('nav-signin-btn');
-    
-    if (user && navBtn) {
-        // User is Logged In -> Change Button to Profile/Logout
-        const firstName = user.displayName ? user.displayName.split(' ')[0] : 'Student';
-        navBtn.innerHTML = `<i class="fa-regular fa-user"></i> Hi, ${firstName}`;
-        navBtn.classList.remove('btn-primary');
-        navBtn.style.background = 'transparent';
-        navBtn.style.color = 'var(--primary-color)';
-        navBtn.style.border = '1px solid var(--primary-color)';
-        
-        // Change the link behavior to Logout
-        navBtn.href = "#";
-        navBtn.onclick = (e) => {
-            e.preventDefault();
-            if(confirm("Do you want to log out?")) {
-                window.handleLogout();
-            }
-        };
-    } else if (navBtn) {
-        // User is Logged Out -> Reset Button
-        navBtn.innerHTML = "Sign In";
-        navBtn.href = "signin.html";
-        navBtn.classList.add('btn-primary');
-        navBtn.style.background = '';
-        navBtn.style.color = '';
-        navBtn.style.border = '';
-        navBtn.onclick = null; // Remove logout listener
-    }
-});
-
-// ==========================================
-// 3. PRODUCT DATA (The Inventory)
+// 2. PRODUCT DATA (The Inventory)
 // ==========================================
 const productsData = [
     { id: 1, name: "Study Desk & Chair", category: "furniture", price: 149.99, image: "https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?w=500&q=80" },
@@ -124,23 +49,88 @@ const productsData = [
 ];
 
 // ==========================================
-// 4. SHOPPING CART LOGIC
+// 3. AUTHENTICATION LOGIC (Google Login)
+// ==========================================
+
+window.handleGoogleLogin = async function() {
+    try {
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+        
+        await setDoc(doc(db, "users", user.uid), {
+            name: user.displayName,
+            email: user.email,
+            lastLogin: new Date()
+        }, { merge: true });
+
+        showToast(`Welcome, ${user.displayName.split(' ')[0]}!`);
+        if(window.location.pathname.includes('signin.html')) {
+            setTimeout(() => window.location.href = "index.html", 1000);
+        }
+    } catch (error) {
+        console.error("Login Error:", error);
+        alert("Login failed: " + error.message);
+    }
+}
+
+window.handleLogout = async function() {
+    try {
+        await signOut(auth);
+        showToast("Logged out successfully");
+        setTimeout(() => window.location.reload(), 1000);
+    } catch (error) {
+        console.error("Logout Error:", error);
+    }
+}
+
+// Sync UI with Auth State
+onAuthStateChanged(auth, async (user) => {
+    const navBtn = document.getElementById('nav-signin-btn');
+    if (user && navBtn) {
+        const firstName = user.displayName ? user.displayName.split(' ')[0] : 'Student';
+        navBtn.innerHTML = `<i class="fa-regular fa-user"></i> Hi, ${firstName}`;
+        navBtn.href = "#";
+        navBtn.onclick = (e) => {
+            e.preventDefault();
+            if(confirm("Do you want to log out?")) window.handleLogout();
+        };
+        // Sync cloud cart to local on login
+        const cartDoc = await getDoc(doc(db, "carts", user.uid));
+        if (cartDoc.exists()) {
+            cart = cartDoc.data().items || [];
+            updateCartUI();
+        }
+    } else if (navBtn) {
+        navBtn.innerHTML = "Sign In";
+        navBtn.href = "signin.html";
+        navBtn.onclick = null;
+    }
+});
+
+// ==========================================
+// 4. SHOPPING CART & PERSISTENCE
 // ==========================================
 let cart = JSON.parse(localStorage.getItem('studySpaceCart')) || [];
 
-function saveCart() {
+async function saveCart() {
     localStorage.setItem('studySpaceCart', JSON.stringify(cart));
+    const user = auth.currentUser;
+    if (user) {
+        await setDoc(doc(db, "carts", user.uid), {
+            items: cart,
+            updatedAt: new Date()
+        });
+    }
     updateCartUI();
 }
 
-// MAKE GLOBAL so HTML can see it
 window.addToCart = function(id) {
     const product = productsData.find(p => p.id === id);
-    if (!product) return;
-
-    cart.push(product);
-    saveCart();
-    showToast(`Added ${product.name} to cart!`);
+    if (product) {
+        cart.push(product);
+        saveCart();
+        showToast(`Added ${product.name} to cart!`);
+    }
 }
 
 window.removeFromCart = function(index) {
@@ -158,7 +148,6 @@ function updateCartUI() {
     if(cartContainer && totalEl) {
         cartContainer.innerHTML = '';
         let total = 0;
-
         if(cart.length === 0) {
             cartContainer.innerHTML = '<p class="empty-msg" style="text-align:center; color:#999; margin-top:20px;">Your cart is empty.</p>';
         } else {
@@ -172,8 +161,7 @@ function updateCartUI() {
                         <h4>${item.name}</h4>
                         <div class="price">$${item.price.toFixed(2)}</div>
                         <div class="cart-item-remove" onclick="removeFromCart(${index})">Remove</div>
-                    </div>
-                `;
+                    </div>`;
                 cartContainer.appendChild(div);
             });
         }
@@ -182,7 +170,7 @@ function updateCartUI() {
 }
 
 // ==========================================
-// 5. UI & INITIALIZATION
+// 5. UI FEATURES & INITIALIZATION
 // ==========================================
 
 function showToast(message) {
@@ -196,22 +184,14 @@ function showToast(message) {
         setTimeout(() => toast.remove(), 400);
     }, 3000);
 }
-// Expose showToast to window so other scripts can use it
-window.showToast = showToast; 
 
 document.addEventListener('DOMContentLoaded', () => {
-
-    // 1. Render Products (Dynamic Grid)
     const productGrid = document.querySelector('.product-grid');
-    // Check if we are on products.html OR index.html
     const isHome = window.location.pathname.endsWith('index.html') || window.location.pathname === '/' || window.location.pathname.endsWith('/');
-    const isProducts = window.location.pathname.includes('products.html');
-
+    
     if (productGrid) {
         productGrid.innerHTML = ''; 
-        // If Home, show only 4 items. If Products, show all.
         const itemsToShow = isHome ? productsData.slice(0, 4) : productsData;
-        
         itemsToShow.forEach(product => {
             const card = document.createElement('div');
             card.className = 'product-card';
@@ -219,7 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
             card.innerHTML = `
                 <div class="product-image">
                     <img src="${product.image}" alt="${product.name}" loading="lazy">
-                    <span class="product-badge" style="position:absolute; top:10px; right:10px; background:white; padding:4px 10px; border-radius:15px; font-size:0.7rem; font-weight:bold;">${product.category.toUpperCase()}</span>
+                    <span class="product-badge" style="position:absolute; top:10px; right:10px; background:white; padding:4px 10px; border-radius:15px; font-size:0.7rem; font-weight:bold; color:var(--primary-color)">${product.category.toUpperCase()}</span>
                 </div>
                 <div class="product-info">
                     <h3>${product.name}</h3>
@@ -228,134 +208,119 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span class="price">$${product.price.toFixed(2)}</span>
                         <button class="btn btn-sm btn-primary" onclick="addToCart(${product.id})">Add</button>
                     </div>
-                </div>
-            `;
+                </div>`;
             productGrid.appendChild(card);
         });
     }
 
-    // 2. Filter Logic
+    // Filter Logic
     const filterBtns = document.querySelectorAll('.filter-btn');
-    if(filterBtns.length > 0) {
-        filterBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                filterBtns.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                const filter = btn.getAttribute('data-filter');
-                document.querySelectorAll('.product-card').forEach(card => {
-                    const category = card.getAttribute('data-category');
-                    if (filter === 'all' || category === filter) {
-                        card.classList.remove('hidden');
-                    } else {
-                        card.classList.add('hidden');
-                    }
-                });
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            filterBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const filter = btn.getAttribute('data-filter');
+            document.querySelectorAll('.product-card').forEach(card => {
+                const category = card.getAttribute('data-category');
+                if (filter === 'all' || category === filter) card.classList.remove('hidden');
+                else card.classList.add('hidden');
             });
         });
-    }
+    });
 
-    // 3. Cart Sidebar Logic
+    // Cart Sidebar Toggle
     setTimeout(() => {
         const cartBtn = document.getElementById('open-cart-btn');
         const closeCartBtn = document.getElementById('close-cart-btn');
         const sidebar = document.getElementById('cart-sidebar');
         const overlay = document.getElementById('cart-overlay');
-        const mobileCart = document.querySelector('a[onclick*="openCart"]');
         
         function toggleCart(e) {
             if(e) e.preventDefault();
-            if(sidebar) sidebar.classList.toggle('open');
-            if(overlay) overlay.classList.toggle('open');
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('open');
         }
 
         if(cartBtn) cartBtn.addEventListener('click', toggleCart);
         if(closeCartBtn) closeCartBtn.addEventListener('click', toggleCart);
         if(overlay) overlay.addEventListener('click', toggleCart);
-        if(mobileCart) mobileCart.addEventListener('click', toggleCart);
-        
         updateCartUI();
     }, 500);
+});
+
+// --- SCROLL TO TOP ---
+const scrollBtn = document.createElement('button');
+scrollBtn.id = 'scroll-top-btn';
+scrollBtn.innerHTML = '<i class="fa-solid fa-arrow-up"></i>';
+document.body.appendChild(scrollBtn);
+
+window.addEventListener('scroll', () => {
+    if (window.scrollY > 300) scrollBtn.classList.add('visible');
+    else scrollBtn.classList.remove('visible');
+});
+
+scrollBtn.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 });
 
 // ==========================================
 // 6. CHECKOUT LOGIC
 // ==========================================
 
-window.injectCheckoutModal = function() {
-    if(document.getElementById('checkout-modal')) return; // Don't duplicate
-    const modalHTML = `
-    <div class="checkout-modal" id="checkout-modal">
-        <div class="checkout-header">
-            <i class="fa-regular fa-credit-card"></i>
-            <h2>Secure Checkout</h2>
-            <p>Complete your purchase</p>
-        </div>
-        <div class="order-summary" id="order-summary"></div>
-        <form id="payment-form" onsubmit="processPayment(event)">
-            <input type="text" class="form-input" placeholder="Card Number (Simulated)" required>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                <input type="text" class="form-input" placeholder="MM/YY" required>
-                <input type="text" class="form-input" placeholder="123" required>
-            </div>
-            <button type="submit" class="btn btn-primary full-width" id="pay-btn">Pay Now</button>
-        </form>
-        <button class="btn btn-outline full-width" style="margin-top:10px; border:none;" onclick="closeCheckout()">Cancel</button>
-    </div>
-    <div class="modal-overlay" id="checkout-overlay"></div>
-    `;
-    document.body.insertAdjacentHTML('beforeend', modalHTML);
-    
-    // Attach listener to overlay
-    document.getElementById('checkout-overlay').addEventListener('click', window.closeCheckout);
-}
-
 window.openCheckout = function() {
     if(cart.length === 0) return showToast("Your cart is empty!");
     
-    // Check if modal exists, if not inject it
-    injectCheckoutModal();
-
-    const subtotal = cart.reduce((sum, item) => sum + item.price, 0);
-    const tax = subtotal * 0.08;
-    const total = subtotal + tax;
-
-    const summary = document.getElementById('order-summary');
-    if(summary) {
-        summary.innerHTML = `
-            <div class="summary-row"><span>Subtotal</span> <span>$${subtotal.toFixed(2)}</span></div>
-            <div class="summary-row"><span>Tax (8%)</span> <span>$${tax.toFixed(2)}</span></div>
-            <div class="summary-total"><div class="summary-row" style="margin:0;"><span>Total</span> <span>$${total.toFixed(2)}</span></div></div>
-        `;
+    if(!document.getElementById('checkout-modal')) {
+        const modalHTML = `
+        <div class="checkout-modal" id="checkout-modal">
+            <div class="checkout-header">
+                <i class="fa-regular fa-credit-card"></i>
+                <h2>Secure Checkout</h2>
+                <p>Complete your purchase</p>
+            </div>
+            <div class="order-summary" id="order-summary"></div>
+            <form onsubmit="processPayment(event)">
+                <input type="text" class="form-input" placeholder="Card Number (Simulated)" required>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                    <input type="text" class="form-input" placeholder="MM/YY" required>
+                    <input type="text" class="form-input" placeholder="123" required>
+                </div>
+                <button type="submit" class="btn btn-primary full-width" id="pay-btn">Pay Now</button>
+            </form>
+            <button class="btn btn-outline full-width" style="margin-top:10px; border:none;" onclick="closeCheckout()">Cancel</button>
+        </div>
+        <div class="modal-overlay" id="checkout-overlay"></div>`;
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        document.getElementById('checkout-overlay').onclick = closeCheckout;
     }
+
+    const sub = cart.reduce((s, i) => s + i.price, 0);
+    document.getElementById('order-summary').innerHTML = `
+        <div class="summary-row"><span>Total Items:</span> <span>${cart.length}</span></div>
+        <div class="summary-total"><div class="summary-row"><span>Total:</span> <span>$${(sub * 1.08).toFixed(2)}</span></div></div>`;
 
     document.getElementById('checkout-modal').classList.add('active');
     document.getElementById('checkout-overlay').classList.add('active');
     document.getElementById('cart-sidebar').classList.remove('open');
 }
 
-window.closeCheckout = function() {
+window.closeCheckout = () => {
     document.getElementById('checkout-modal').classList.remove('active');
     document.getElementById('checkout-overlay').classList.remove('active');
 }
 
-window.processPayment = function(e) {
+window.processPayment = (e) => {
     e.preventDefault();
-    const btn = document.getElementById('pay-btn');
-    btn.innerText = "Processing...";
-    
+    document.getElementById('pay-btn').innerText = "Processing...";
     setTimeout(() => {
-        window.closeCheckout();
+        closeCheckout();
         cart = [];
         saveCart();
         showToast("Order Placed Successfully!");
-        btn.innerText = "Pay Now";
-        document.getElementById('payment-form').reset();
     }, 2000);
 }
 
-// Attach checkout to sidebar button dynamically
-document.addEventListener('click', function(e){
-    if(e.target && e.target.innerText === 'Checkout' && e.target.closest('.cart-footer')){
-        window.openCheckout();
-    }
+// Global Checkout Event Listener
+document.addEventListener('click', (e) => {
+    if(e.target.innerText === 'Checkout' && e.target.closest('.cart-footer')) window.openCheckout();
 });
