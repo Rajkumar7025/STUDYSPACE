@@ -267,30 +267,68 @@ button { font-family: inherit; }
     box-shadow: 0 4px 10px rgba(168, 85, 247, 0.4);
 }
 
-/* Product Cards */
+/* =========================================
+   UPDATED PRODUCT CARDS (Replace this section)
+   ========================================= */
 .product-grid {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    display: grid; 
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* Better responsiveness */
     gap: 30px;
+    padding-bottom: 50px;
 }
 
 .product-card {
-    background: white; border-radius: 20px; overflow: hidden;
-    box-shadow: var(--shadow-sm); border: 1px solid #f3f4f6; transition: 0.3s;
+    background: white; 
+    border-radius: 15px; 
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); 
+    border: 1px solid #f3f4f6; 
+    transition: 0.3s;
+    display: flex;       /* Fixes internal spacing */
+    flex-direction: column; 
+    height: 100%;        /* Ensures equal height cards */
 }
 
 .product-card:hover {
-    box-shadow: var(--shadow-lg); transform: translateY(-5px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); 
+    transform: translateY(-5px);
 }
 
-.product-image { height: 220px; position: relative; overflow: hidden; }
-.product-image img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
-.product-card:hover .product-image img { transform: scale(1.05); }
+.product-image { 
+    height: 220px; 
+    width: 100%;
+    position: relative; 
+    background-color: #f3f4f6; /* Gray placeholder if image fails */
+}
 
-.product-info { padding: 25px; }
-.product-info h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 8px; }
+.product-image img { 
+    width: 100%; 
+    height: 100%; 
+    object-fit: cover; /* Forces image to fit the box without stretching */
+    display: block;
+}
 
-.price-row { display: flex; justify-content: space-between; align-items: center; }
-.price { font-size: 1.25rem; font-weight: 700; color: var(--primary-color); }
+.product-info { 
+    padding: 20px; 
+    display: flex; 
+    flex-direction: column;
+    flex-grow: 1; /* Pushes content to fill space */
+    justify-content: space-between;
+}
+
+.product-info h3 { 
+    font-size: 1.1rem; 
+    font-weight: 600; 
+    margin-bottom: 5px; 
+    color: var(--text-dark);
+}
+
+.price-row { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    margin-top: 15px;
+}
 
 /* Section Header (View All) */
 .section-header {
@@ -440,4 +478,5 @@ footer a:hover { color: white; }
     .hero-badge { right: 50%; transform: translateX(50%); bottom: -20px; width: max-content; }
     .stats-grid { grid-template-columns: 1fr 1fr; }
     .section-header { flex-direction: column; align-items: center; gap: 10px; }
+
 }
