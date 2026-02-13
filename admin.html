@@ -263,6 +263,13 @@ function loadOrders() {
         });
     });
 }
+        window.markShipped = async (orderId) => {
+    if(confirm("Confirm that this order has been packed and shipped?")) {
+        await updateDoc(doc(db, "orders", orderId), {
+            status: "Shipped"
+        });
+    }
+};
 
     </script>
 </body>
