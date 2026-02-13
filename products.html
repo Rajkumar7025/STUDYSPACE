@@ -40,14 +40,13 @@
     <div class="checkout-modal" id="checkout-modal">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
             <h2>Confirm Order</h2>
-            <button onclick="closeCheckout()" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+            <button onclick="window.closeCheckout()" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
         </div>
         
         <div id="checkout-summary" style="background:#f9fafb; padding:15px; border-radius:8px; margin-bottom:20px;">
-            <p>Ready to purchase items in your cart?</p>
-        </div>
+            </div>
 
-        <form onsubmit="processPayment(event)">
+        <form onsubmit="window.processPayment(event)">
             <label style="display:block; margin-bottom:5px; font-weight:600;">Card Details</label>
             <input type="text" placeholder="0000 0000 0000 0000" class="form-input" required maxlength="19">
             
