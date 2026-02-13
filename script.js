@@ -359,3 +359,46 @@ document.addEventListener('click', function(e){
         window.openCheckout();
     }
 });
+
+// ... (keep all your existing code) ...
+
+// ==========================================
+// 6. EXPORT TO WINDOW (REQUIRED FOR HTML CLICK)
+// ==========================================
+window.openCheckout = function() {
+    if(cart.length === 0) {
+        alert("Your cart is empty!");
+        return;
+    }
+    const modal = document.getElementById('checkout-modal');
+    const overlay = document.getElementById('checkout-overlay');
+    const summary = document.getElementById('checkout-summary');
+    
+    // Calculate Total
+    const total = cart.reduce((sum, item) => sum + item.price, 0);
+    summary.innerHTML = `<p>Total Amount: <strong>$${total.toFixed(2)}</strong></p><p>Items: ${cart.length}</p>`;
+
+    if(modal) modal.classList.add('active');
+    if(overlay) overlay.classList.add('active');
+    
+    // Close the sidebar so it doesn't block the modal
+    document.getElementById('cart-sidebar').classList.remove('open');
+    document.getElementById('cart-overlay').classList.remove('open');
+}
+
+window.closeCheckout = function() {
+    document.getElementById('checkout-modal').classList.remove('active');
+    document.getElementById('checkout-overlay').classList.remove('active');
+}
+
+window.processPayment = async function(e) {
+    e.preventDefault();
+    alert("Payment Successful! (Demo Mode)");
+    
+    // Clear Cart
+    cart = [];
+    localStorage.setItem('studySpaceCart', JSON.stringify([]));
+    
+    // Refresh Page
+    window.location.reload();
+}
