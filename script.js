@@ -26,28 +26,30 @@ const provider = new GoogleAuthProvider();
 // ==========================================
 // 2. PRODUCT DATA (The Inventory)
 // ==========================================
-const productsData = [
-    { id: 1, name: "Study Desk & Chair", category: "furniture", price: 0.00, image: "https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?w=500&q=80" },
-    { id: 2, name: "Cozy Bedding Set", category: "bedding", price: 79.99, image: "https://images.unsplash.com/photo-1522771753035-1a5b65a9f176?w=500&q=80" },
-    { id: 3, name: "Kitchen Starter Pack", category: "kitchen", price: 89.99, image: "https://images.unsplash.com/photo-1584622050111-993a426fbf0a?w=500&q=80" },
-    { id: 4, name: "Under-bed Storage", category: "storage", price: 29.99, image: "https://images.unsplash.com/photo-1622445275576-721325763afe?w=500&q=80" },
-    { id: 5, name: "Ergonomic Office Chair", category: "furniture", price: 120.00, image: "https://images.unsplash.com/photo-1505843490538-5133c6c7d0e1?w=500&q=80" },
-    { id: 6, name: "LED Desk Lamp", category: "furniture", price: 25.00, image: "https://images.unsplash.com/photo-1534281303260-5920f0728475?w=500&q=80" },
-    { id: 7, name: "Non-Stick Cookware Set", category: "kitchen", price: 55.00, image: "https://images.unsplash.com/photo-1583947215259-38e31be8751f?w=500&q=80" },
-    { id: 8, name: "Memory Foam Pillow", category: "bedding", price: 35.00, image: "https://images.unsplash.com/photo-1584100936595-c0654b55a2e6?w=500&q=80" },
-    { id: 9, name: "Laundry Basket", category: "storage", price: 15.99, image: "https://images.unsplash.com/photo-1582735689369-4fe89db7114c?w=500&q=80" },
-    { id: 10, name: "Compact Bookshelf", category: "furniture", price: 65.00, image: "https://images.unsplash.com/photo-1594620302200-9a762244a156?w=500&q=80" },
-    { id: 11, name: "Electric Kettle", category: "kitchen", price: 22.50, image: "https://images.unsplash.com/photo-1594213114663-d94db9b17126?w=500&q=80" },
-    { id: 12, name: "Duvet Insert (Queen)", category: "bedding", price: 45.00, image: "https://images.unsplash.com/photo-1616486701797-0f33f61038ec?w=500&q=80" },
-    { id: 13, name: "Cutlery Set (16pc)", category: "kitchen", price: 19.99, image: "https://images.unsplash.com/photo-1581643799863-12d42436f56b?w=500&q=80" },
-    { id: 14, name: "Shoe Rack Organizer", category: "storage", price: 32.00, image: "https://images.unsplash.com/photo-1595515106969-1ce29566ff1c?w=500&q=80" },
-    { id: 15, name: "Throw Blanket", category: "bedding", price: 24.99, image: "https://images.unsplash.com/photo-1580480055273-228ff5388ef8?w=500&q=80" },
-    { id: 16, name: "Mini Fridge", category: "kitchen", price: 150.00, image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30?w=500&q=80" },
-    { id: 17, name: "Closet Hangers (20pk)", category: "storage", price: 12.00, image: "https://images.unsplash.com/photo-1610336829705-18cb6641e469?w=500&q=80" },
-    { id: 18, name: "Bean Bag Chair", category: "furniture", price: 55.00, image: "https://images.unsplash.com/photo-1560184897-ae75f418493e?w=500&q=80" },
-    { id: 19, name: "Food Storage Containers", category: "kitchen", price: 28.00, image: "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=500&q=80" },
-    { id: 20, name: "Bedside Rug", category: "bedding", price: 35.00, image: "https://images.unsplash.com/photo-1575414723226-972a9e38d780?w=500&q=80" }
-];
+import { collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+let productsData = [];
+
+// This function listens to the database in real-time
+onSnapshot(collection(db, "products"), (snapshot) => {
+    productsData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+    }));
+    
+    // Call your render function every time a product is added/changed
+    renderAllProducts(); 
+});
+
+function renderAllProducts() {
+    const productGrid = document.querySelector('.product-grid');
+    if (!productGrid) return;
+    
+    productGrid.innerHTML = '';
+    productsData.forEach(product => {
+        // ... paste your existing product card HTML generation here ...
+    });
+}
 
 // ==========================================
 // 3. AUTHENTICATION LOGIC (Google Login)
@@ -405,4 +407,5 @@ window.renderSuccessMessage = function(email) {
         </div>
     `;
 }
+
 
