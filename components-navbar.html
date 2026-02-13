@@ -1,0 +1,50 @@
+<nav class="navbar">
+    <div class="container nav-container">
+        <a href="index.html" class="logo">
+            <div class="logo-icon"><i class="fa-solid fa-bag-shopping"></i></div>
+            <span class="logo-text">StudySpace</span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="index.html" id="link-home">Home</a></li>
+            <li><a href="products.html" id="link-products">Products</a></li>
+            <li><a href="about.html" id="link-about">About</a></li>
+            <li><a href="contact.html" id="link-contact">Contact</a></li>
+        </ul>
+        
+        <div class="nav-actions">
+            <div class="cart-icon-wrapper" id="open-cart-btn">
+                <i class="fa-solid fa-cart-shopping"></i>
+                <span class="cart-count" id="cart-count">0</span>
+            </div>
+            <a href="signin.html" class="btn btn-primary" id="nav-signin-btn">Sign In</a>
+        </div>
+
+        <div class="hamburger" id="hamburger"><i class="fa-solid fa-bars"></i></div>
+    </div>
+    
+    <div class="mobile-menu" id="mobile-menu">
+        <a href="index.html">Home</a>
+        <a href="products.html">Products</a>
+        <a href="about.html">About</a>
+        <a href="contact.html">Contact</a>
+        <a href="#" onclick="document.dispatchEvent(new Event('openCart'))">View Cart</a>
+        <a href="signin.html" class="btn btn-primary full-width">Sign In</a>
+    </div>
+</nav>
+
+<div class="cart-sidebar" id="cart-sidebar">
+    <div class="cart-header">
+        <h3>Your Cart</h3>
+        <button id="close-cart-btn" style="background:none; border:none; font-size:1.2rem; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="cart-items" id="cart-items-container">
+        </div>
+    <div class="cart-footer">
+        <div class="total-row" style="display:flex; justify-content:space-between; margin-bottom:15px; font-weight:bold;">
+            <span>Total:</span>
+            <span id="cart-total">$0.00</span>
+        </div>
+        <button class="btn btn-primary full-width">Checkout</button>
+    </div>
+</div>
+<div class="cart-overlay" id="cart-overlay"></div>
