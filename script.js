@@ -1,11 +1,10 @@
 // ==========================================
-// 1. FIREBASE SETUP (The Connection)
+// 1. FIREBASE CONFIGURATION & IMPORTS
 // ==========================================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, collection, onSnapshot, addDoc, serverTimestamp, increment, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, doc, collection, onSnapshot, addDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// Your Specific Firebase Configuration
 const firebaseConfig = {
   apiKey: "AIzaSyB47wH_KObIIMAksM8TqI7norRmSK0IXnY",
   authDomain: "studyspace-backend.firebaseapp.com",
@@ -16,32 +15,33 @@ const firebaseConfig = {
   measurementId: "G-LFTQWBYXGS"
 };
 
-// Initialize Connection
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
-console.log("🔥 Firebase Connected!"); // Check your console for this message
+console.log("🔥 Shop Connected to Backend");
 
 // ==========================================
-// 2. FETCH PRODUCTS (Real-time Link to Admin)
+// 2. DATA VARIABLES
 // ==========================================
 let productsData = []; 
 let cart = JSON.parse(localStorage.getItem('studySpaceCart')) || [];
 
-// This listener waits for changes in your Admin Panel
+// ==========================================
+// 3. FETCH PRODUCTS (Real-time from Admin)
+// ==========================================
 onSnapshot(collection(db, "products"), (snapshot) => {
     productsData = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
     }));
-    console.log("📦 Products loaded:", productsData.length);
-    renderProducts('all'); // Render immediately when data arrives
+    renderProducts('all'); // Refresh grid when data changes
 });
 
 // ==========================================
-// 3. RENDER FUNCTION (Displays the Data)
+// 4. RENDER FUNCTIONS (Display Logic)
 // ==========================================
 function renderProducts(filterType) {
     const productGrid = document.querySelector('.product-grid');
@@ -50,7 +50,6 @@ function renderProducts(filterType) {
     // Filter Logic
     const filteredItems = productsData.filter(product => {
         if (filterType === 'all') return true;
-        // Check if category exists before lowering case to prevent errors
         return product.category && product.category.toLowerCase() === filterType.toLowerCase();
     });
 
@@ -66,6 +65,7 @@ function renderProducts(filterType) {
         const card = document.createElement('div');
         card.className = `product-card ${isOutOfStock ? 'out-of-stock' : ''}`;
         
+        // Product Card HTML
         card.innerHTML = `
             <div class="product-image">
                 <img src="${product.image}" alt="${product.name}" onerror="this.src='https://via.placeholder.com/300?text=No+Image'">
@@ -88,42 +88,46 @@ function renderProducts(filterType) {
 }
 
 // ==========================================
-// 4. GLOBAL FUNCTIONS (So HTML can see them)
+// 5. GLOBAL WINDOW FUNCTIONS (For HTML Clicks)
 // ==========================================
 
-// Filter Button Logic
-window.filterProducts = function(category, btn) {
+// Filter Button Click
+window.filterProducts = function(btn) {
     // Visual Update
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-    if(btn) btn.classList.add('active');
-    
-    // Render Update
+    btn.classList.add('active');
+    // Logic Update
+    const category = btn.getAttribute('data-filter');
     renderProducts(category);
 }
 
-// Add event listeners to buttons manually if they don't use onclick
-document.addEventListener('click', (e) => {
-    if(e.target.classList.contains('filter-btn')) {
-        const cat = e.target.getAttribute('data-filter');
-        window.filterProducts(cat, e.target);
-    }
-});
-
+// Add To Cart
 window.addToCart = function(id) {
     const p = productsData.find(item => item.id === id);
     if (p && p.stock > 0) {
         cart.push(p);
         updateCart();
         alert(`Added ${p.name} to cart!`);
+    } else {
+        alert("Sorry, this item is out of stock!");
     }
 };
 
+// Remove From Cart
+window.removeFromCart = function(index) {
+    cart.splice(index, 1);
+    updateCart();
+}
+
+// Update Cart UI & Storage
 function updateCart() {
     localStorage.setItem('studySpaceCart', JSON.stringify(cart));
-    // Dispatch event so main.js knows to update the number
-    document.dispatchEvent(new Event('cartUpdated'));
     
-    // Update the UI if the sidebar is open
+    // Update Cart Badge
+    const badge = document.getElementById('cart-count');
+    if(badge) badge.innerText = cart.length;
+
+    // Update Sidebar List
     const container = document.getElementById('cart-items-container');
     const totalEl = document.getElementById('cart-total');
     
@@ -147,82 +151,93 @@ function updateCart() {
             </div>`;
         });
         if(totalEl) totalEl.innerText = '$' + total.toFixed(2);
-        
-        // Update count badge
-        const badge = document.getElementById('cart-count');
-        if(badge) badge.innerText = cart.length;
     }
 }
 
-window.removeFromCart = function(index) {
-    cart.splice(index, 1);
-    updateCart();
-}
-
-// Run cart update on load
-window.addEventListener('DOMContentLoaded', updateCart);
-
-// ==========================================
-// 5. CHECKOUT LOGIC
-// ==========================================
+// Open Checkout Modal
 window.openCheckout = function() {
     if(cart.length === 0) return alert("Cart is empty!");
+    
     const modal = document.getElementById('checkout-modal');
     const overlay = document.getElementById('checkout-overlay');
-    if(modal) modal.classList.add('active'); // CSS must have .active { display:block } or opacity:1
+    const summary = document.getElementById('checkout-summary');
+    
+    // Calculate Total
+    const total = cart.reduce((sum, item) => sum + Number(item.price), 0);
+    
+    if(summary) summary.innerHTML = `
+        <div style="text-align:center; padding:10px; background:#f0fdf4; border-radius:8px; color:#166534;">
+            <h3>Total to Pay: $${total.toFixed(2)}</h3>
+            <p>${cart.length} items</p>
+        </div>
+    `;
+
+    if(modal) modal.classList.add('active'); 
     if(overlay) overlay.classList.add('active');
     
-    // Auto-calculate total for the modal
-    const total = cart.reduce((sum, item) => sum + Number(item.price), 0);
-    const summary = document.getElementById('checkout-summary');
-    if(summary) summary.innerHTML = `<h3>Total to Pay: $${total.toFixed(2)}</h3>`;
+    // Close sidebar
+    document.getElementById('cart-sidebar').classList.remove('open');
+    document.getElementById('cart-overlay').classList.remove('open');
 }
 
+// Close Checkout Modal
 window.closeCheckout = function() {
     document.getElementById('checkout-modal').classList.remove('active');
     document.getElementById('checkout-overlay').classList.remove('active');
 }
 
-// ==========================================
-// REPLACE YOUR EXISTING processPayment FUNCTION
-// ==========================================
+// PROCESS PAYMENT (The Real Transaction)
 window.processPayment = async function(e) {
     e.preventDefault();
     
-    if(cart.length === 0) return alert("Cart is empty!");
+    if(cart.length === 0) return;
+    
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    submitBtn.innerText = "Processing...";
+    submitBtn.disabled = true;
 
-    // 1. Collect Order Details
+    // 1. Create Order Data
     const orderData = {
-        customerName: "Guest Student", // You can add an input field for this later
-        customerEmail: "student@example.com",
-        items: cart, // Saves the whole cart array
+        customerName: "Student Guest", 
+        email: "student@uni.edu",
+        items: cart, // Saves the items
         total: cart.reduce((sum, item) => sum + Number(item.price), 0),
-        status: "Pending", // Default status
-        createdAt: new Date() // Timestamp
+        status: "Pending", // Admin will see this
+        createdAt: new Date()
     };
 
     try {
-        // 2. Save Order to 'orders' Collection
+        // 2. Save to 'orders' collection
         await addDoc(collection(db, "orders"), orderData);
 
-        // 3. Reduce Stock for Each Item
-        // We loop through the cart and update the 'products' collection
+        // 3. Reduce Stock for each item purchased
         for (const item of cart) {
             const productRef = doc(db, "products", item.id);
             await updateDoc(productRef, {
-                stock: increment(-1) // Magically subtracts 1 from current stock
+                stock: increment(-1) // Database magic: subtracts 1
             });
         }
 
-        // 4. Success!
-        alert("✅ Order Placed! We have received your order.");
-        cart = []; // Clear local cart
+        alert("✅ Order Placed! Admin has been notified.");
+        cart = []; // Clear Cart
         updateCart(); // Update UI
-        window.closeCheckout(); // Close modal
+        window.closeCheckout(); // Close Modal
+        window.location.reload(); // Refresh Page
 
     } catch (error) {
-        console.error("Order Failed:", error);
-        alert("❌ Error placing order: " + error.message);
+        console.error(error);
+        alert("❌ Error: " + error.message);
+        submitBtn.innerText = "Pay Now";
+        submitBtn.disabled = false;
     }
 }
 
+// Initialize Cart on Load
+document.addEventListener('DOMContentLoaded', updateCart);
+
+// Event Delegation for Filters (Fixes click issues)
+document.addEventListener('click', (e) => {
+    if(e.target.classList.contains('filter-btn')) {
+        window.filterProducts(e.target);
+    }
+});
