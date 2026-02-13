@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudySpace - Sign In</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body style="background: linear-gradient(to bottom, #fff 0%, #fdf4ff 100%);">
+    <div id="navbar-placeholder"></div>
+
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="text-center mb-8">
+                <h1 style="margin-bottom:10px;">Welcome Back</h1>
+                <p id="auth-subtitle" style="color:#6b7280;">Sign in to continue shopping</p>
+            </div>
+
+            <div style="background:#f3f4f6; padding:5px; border-radius:50px; display:flex; margin-bottom:30px;">
+                <button class="auth-toggle-btn active" style="flex:1; padding:10px; border:none; background:white; border-radius:50px; cursor:pointer;" onclick="switchAuth('login')">Login</button>
+                <button class="auth-toggle-btn" style="flex:1; padding:10px; border:none; background:transparent; border-radius:50px; cursor:pointer;" onclick="switchAuth('register')">Register</button>
+            </div>
+
+            <form id="auth-form">
+                <div class="hidden" id="field-name">
+                    <input type="text" placeholder="Full Name" class="form-input">
+                </div>
+                <input type="email" placeholder="Email Address" class="form-input">
+                <input type="password" placeholder="Password" class="form-input">
+                <div class="hidden" id="field-confirm-pass">
+                    <input type="password" placeholder="Confirm Password" class="form-input">
+                </div>
+
+                <button type="button" class="btn btn-primary full-width" id="auth-submit-btn" onclick="handleAuth()">Sign In</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="footer-placeholder"></div>
+    <script src="script.js"></script>
+</body>
+</html>
