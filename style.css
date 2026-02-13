@@ -465,3 +465,38 @@ footer a:hover { color: white; }
     background: #ccc !important;
     cursor: not-allowed;
 }
+/* Add/Update these specific blocks in your style.css */
+
+.cart-sidebar {
+    position: fixed; 
+    top: 0; 
+    right: -400px;
+    width: 350px; 
+    height: 100vh;
+    background: white; 
+    z-index: 9999; /* Increased Z-Index to be above Navbar */
+    box-shadow: -5px 0 30px rgba(0,0,0,0.2);
+    transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex; 
+    flex-direction: column;
+}
+
+.cart-sidebar.open { 
+    right: 0; 
+}
+
+.cart-overlay {
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%;
+    background: rgba(0,0,0,0.5); 
+    z-index: 9998; /* Just below sidebar */
+    display: none;
+    backdrop-filter: blur(2px);
+}
+
+.cart-overlay.open { 
+    display: block; 
+}
