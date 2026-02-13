@@ -99,6 +99,24 @@
                 </table>
             </div>
         </div>
+        <div class="admin-card" style="border-top: 4px solid #a855f7;">
+    <h3><i class="fa-solid fa-truck-fast"></i> New Orders (To Ship)</h3>
+    <div style="overflow-x: auto;">
+        <table class="inventory-table">
+            <thead>
+                <tr>
+                    <th>Status</th>
+                    <th>Customer</th>
+                    <th>Items Ordered</th>
+                    <th>Total</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="orders-list">
+                </tbody>
+        </table>
+    </div>
+</div>
     </div>
 
     <script type="module">
@@ -196,6 +214,8 @@
             });
         }
 
+        
+
         // --- E. DELETE FUNCTION ---
         // We attach this to 'window' so the HTML onclick="" can find it
         window.deleteProduct = async (id) => {
@@ -203,6 +223,47 @@
                 await deleteDoc(doc(db, "products", id));
             }
         };
+
+        // --- F. LOAD ORDERS (Real-time) ---
+function loadOrders() {
+    onSnapshot(collection(db, "orders"), (snapshot) => {
+        const list = document.getElementById('orders-list');
+        list.innerHTML = ''; 
+
+        snapshot.forEach(orderDoc => {
+            const order = orderDoc.data();
+            const row = document.createElement('tr');
+            
+            // Format the list of items
+            const itemsList = order.items.map(i => `• ${i.name}`).join('<br>');
+            
+            // Color code status
+            const statusColor = order.status === 'Shipped' ? '#dcfce7' : '#fef3c7';
+            const statusText = order.status === 'Shipped' ? '#166534' : '#92400e';
+
+            row.innerHTML = `
+                <td>
+                    <span style="background:${statusColor}; color:${statusText}; padding:4px 8px; border-radius:12px; font-weight:bold; font-size:0.8rem;">
+                        ${order.status}
+                    </span>
+                </td>
+                <td>${order.customerName}<br><small>${order.createdAt.toDate().toLocaleDateString()}</small></td>
+                <td style="font-size:0.9rem; color:#4b5563;">${itemsList}</td>
+                <td><strong>$${order.total.toFixed(2)}</strong></td>
+                <td>
+                    ${order.status === 'Pending' ? 
+                        `<button class="btn btn-sm" style="background:#a855f7; color:white;" onclick="markShipped('${orderDoc.id}')">
+                            Ship Now
+                        </button>` : 
+                        `<button class="btn btn-sm" style="background:#e5e7eb; color:#9ca3af;" disabled>Completed</button>`
+                    }
+                </td>
+            `;
+            list.appendChild(row);
+        });
+    });
+}
+
     </script>
 </body>
 </html>
