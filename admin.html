@@ -29,31 +29,43 @@
 
     <script type="module" src="script.js"></script>
     <script type="module">
-        // Specific logic just for this admin page
-        import { getFirestore, collection, onSnapshot, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        const db = getFirestore();
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, collection, onSnapshot, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Listen for live updates to the "orders" collection
+    // 1. YOUR ADMIN EMAIL (Change this!)
+    const ADMIN_EMAIL = 'rajkumar.shrestha7025@gmail.com'; 
+
+    const auth = getAuth();
+    const db = getFirestore();
+    const container = document.getElementById('admin-orders-list');
+
+    // 2. CHECK IF USER IS ADMIN
+    onAuthStateChanged(auth, (user) => {
+        if (user && user.email === ADMIN_EMAIL) {
+            // Authorized: Load the orders
+            loadOrders();
+        } else {
+            // Unauthorized: Block access and redirect
+            document.body.innerHTML = `
+                <div style="text-align:center; padding:100px;">
+                    <h1 style="color:red;">Access Denied</h1>
+                    <p>Only the owner of StudySpace can view this page.</p>
+                    <a href="index.html" class="btn btn-primary">Return Home</a>
+                </div>
+            `;
+            setTimeout(() => { window.location.href = "index.html"; }, 3000);
+        }
+    });
+
+    function loadOrders() {
         onSnapshot(collection(db, "orders"), (snapshot) => {
-            const container = document.getElementById('admin-orders-list');
             if (snapshot.empty) {
                 container.innerHTML = "<p>No orders yet. Keep marketing!</p>";
                 return;
             }
 
-            let html = `
-                <table class="admin-table">
-                    <thead>
-                        <tr>
-                            <th>Student</th>
-                            <th>Items</th>
-                            <th>Total</th>
-                            <th>Status</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
+            let html = `<table class="admin-table"><thead><tr><th>Student</th><th>Items</th><th>Total</th><th>Status</th><th>Action</th></tr></thead><tbody>`;
 
             snapshot.forEach((orderDoc) => {
                 const order = orderDoc.data();
@@ -74,22 +86,20 @@
                     </tr>
                 `;
             });
-
             html += `</tbody></table>`;
             container.innerHTML = html;
         });
+    }
 
-        // Global functions for the buttons
-        window.updateOrderStatus = async (id, newStatus) => {
-            await updateDoc(doc(db, "orders", id), { status: newStatus });
-            alert("Order status updated!");
-        };
+    // Global functions for buttons
+    window.updateOrderStatus = async (id, newStatus) => {
+        await updateDoc(doc(db, "orders", id), { status: newStatus });
+        alert("Status updated!");
+    };
 
-        window.deleteOrder = async (id) => {
-            if(confirm("Are you sure you want to delete this order record?")) {
-                await deleteDoc(doc(db, "orders", id));
-            }
-        };
-    </script>
+    window.deleteOrder = async (id) => {
+        if(confirm("Delete this record?")) await deleteDoc(doc(db, "orders", id));
+    };
+</script>
 </body>
 </html>
