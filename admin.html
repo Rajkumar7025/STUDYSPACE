@@ -6,66 +6,106 @@
     <title>StudySpace - Admin Dashboard</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
-        :root { --admin-bg: #f8fafc; --admin-card: #ffffff; }
-        body { background: var(--admin-bg); font-family: 'Inter', sans-serif; }
-        .admin-container { max-width: 1200px; margin: 40px auto; padding: 20px; }
-        .admin-card { background: var(--admin-card); padding: 30px; border-radius: 15px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); margin-bottom: 30px; border: 1px solid #e2e8f0; }
-        .admin-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        .admin-table th, .admin-table td { padding: 15px; text-align: left; border-bottom: 1px solid #f1f5f9; }
-        .admin-table th { background: #f8fafc; color: #64748b; font-size: 0.85rem; text-transform: uppercase; }
-        .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
-        .status-pending { background: #fef3c7; color: #92400e; }
-        .status-shipped { background: #dcfce7; color: #16a34a; }
-        .admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
-        .hidden-admin { display: none; }
+        /* Admin Specific Styles */
+        body { background: #f8fafc; padding-bottom: 50px; }
+        .admin-container { max-width: 1000px; margin: 40px auto; padding: 20px; }
+        .admin-card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 30px; }
+        .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        
+        /* Form Grid */
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .full-width { grid-column: span 2; }
+        
+        /* Table Styles */
+        .inventory-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .inventory-table th { text-align: left; padding: 15px; background: #f1f5f9; color: #64748b; font-size: 0.9rem; }
+        .inventory-table td { padding: 15px; border-bottom: 1px solid #e2e8f0; }
+        .inventory-table img { width: 50px; height: 50px; border-radius: 5px; object-fit: cover; }
+        
+        /* Login Gate */
+        #login-gate { text-align: center; margin-top: 100px; }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
-    <div id="auth-gate" class="admin-container text-center" style="padding-top:100px;">
-        <i class="fa-solid fa-lock" style="font-size: 3rem; color: #cbd5e1; margin-bottom: 20px;"></i>
-        <h2>Verifying Administrator Identity...</h2>
-        <p>Checking credentials for StudySpace access.</p>
+
+    <nav class="navbar">
+        <div class="container nav-container">
+            <div class="logo">
+                <div class="logo-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                <span class="logo-text">Admin Panel</span>
+            </div>
+            <a href="index.html" class="btn btn-outline">Exit to Shop</a>
+        </div>
+    </nav>
+
+    <div id="login-gate" class="container">
+        <div class="admin-card" style="max-width: 400px; margin: 0 auto;">
+            <i class="fa-solid fa-lock" style="font-size: 3rem; color: #cbd5e1; margin-bottom: 20px;"></i>
+            <h2>Admin Access Only</h2>
+            <p class="mb-8">Sign in with <strong>rajkumar.shrestha7025@gmail.com</strong> to manage the shop.</p>
+            <button id="admin-login-btn" class="btn btn-primary full-width">
+                <i class="fa-brands fa-google"></i> Sign in with Google
+            </button>
+        </div>
     </div>
 
-    <div id="admin-content" class="admin-container hidden-admin">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-            <h1><i class="fa-solid fa-shield-halved" style="color:var(--primary-color)"></i> Admin Panel</h1>
-            <a href="index.html" class="btn btn-outline">Exit to Shop</a>
+    <div id="admin-content" class="admin-container hidden">
+        
+        <div class="admin-header">
+            <h1><i class="fa-solid fa-chart-line"></i> Dashboard</h1>
+            <button id="logout-btn" class="btn btn-sm btn-outline">Log Out</button>
         </div>
 
         <div class="admin-card">
             <h3><i class="fa-solid fa-plus-circle"></i> Add New Product</h3>
-            <form id="add-product-form" class="admin-grid">
-                <input type="text" id="p-name" class="form-input" placeholder="Product Name" required>
+            <form id="add-product-form" class="form-grid">
+                <input type="text" id="p-name" class="form-input" placeholder="Product Name (e.g. Desk Lamp)" required>
                 <input type="number" id="p-price" class="form-input" placeholder="Price ($)" step="0.01" required>
+                
                 <select id="p-category" class="form-input">
                     <option value="furniture">Furniture</option>
-                    <option value="bedding">Bedding</option>
                     <option value="kitchen">Kitchen</option>
+                    <option value="bedding">Bedding</option>
                     <option value="storage">Storage</option>
+                    <option value="lighting">Lighting</option>
+                    <option value="decor">Decor</option>
                 </select>
-                <input type="number" id="p-stock" class="form-input" placeholder="Initial Stock Quantity" required>
-                <input type="text" id="p-image" class="form-input" placeholder="Image URL" style="grid-column: span 2;" required>
-                <button type="submit" class="btn btn-primary" style="grid-column: span 2;">Upload to Shop</button>
+                
+                <input type="number" id="p-stock" class="form-input" placeholder="Stock Quantity" required>
+                <input type="text" id="p-image" class="form-input full-width" placeholder="Image URL (Right click image -> Copy Image Address)" required>
+                
+                <button type="submit" class="btn btn-primary full-width">Upload Product</button>
             </form>
         </div>
 
         <div class="admin-card">
-            <h3><i class="fa-solid fa-boxes-stacked"></i> Shop Inventory</h3>
-            <div id="admin-product-list"><p>Loading products...</p></div>
-        </div>
-
-        <div class="admin-card">
-            <h3><i class="fa-solid fa-truck-fast"></i> Student Orders</h3>
-            <div id="admin-orders-list"><p>Loading orders...</p></div>
+            <h3><i class="fa-solid fa-boxes-stacked"></i> Current Inventory</h3>
+            <div style="overflow-x: auto;">
+                <table class="inventory-table">
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>Name</th>
+                            <th>Price</th>
+                            <th>Stock</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventory-list">
+                        </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
     <script type="module">
+        // --- A. FIREBASE CONNECTION ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, onSnapshot, doc, updateDoc, deleteDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyB47wH_KObIIMAksM8TqI7norRmSK0IXnY",
@@ -80,101 +120,89 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const provider = new GoogleAuthProvider();
 
-        const ADMIN_EMAIL = 'rajkumar.shrestha7025@gmail.com'; 
+        const ADMIN_EMAIL = "rajkumar.shrestha7025@gmail.com";
+
+        // --- B. AUTHENTICATION LOGIC ---
+        const loginGate = document.getElementById('login-gate');
+        const adminContent = document.getElementById('admin-content');
+
+        document.getElementById('admin-login-btn').onclick = () => signInWithPopup(auth, provider);
+        document.getElementById('logout-btn').onclick = () => signOut(auth);
 
         onAuthStateChanged(auth, (user) => {
             if (user && user.email === ADMIN_EMAIL) {
-                document.getElementById('auth-gate').classList.add('hidden-admin');
-                document.getElementById('admin-content').classList.remove('hidden-admin');
-                loadProducts();
-                loadOrders();
+                // User is Admin -> Show Dashboard
+                loginGate.classList.add('hidden');
+                adminContent.classList.remove('hidden');
+                loadInventory(); // Start listening for data
+            } else if (user) {
+                alert("Access Denied: You are not the admin.");
+                signOut(auth);
             } else {
-                document.getElementById('auth-gate').innerHTML = `<h1 style="color:#ef4444;">Access Denied</h1><p>Only <strong>${ADMIN_EMAIL}</strong> can access this panel.</p><a href="signin.html" class="btn btn-primary">Sign in as Admin</a>`;
+                // User is logged out -> Show Lock Screen
+                loginGate.classList.remove('hidden');
+                adminContent.classList.add('hidden');
             }
         });
 
-        // Add Product
+        // --- C. ADD PRODUCT ---
         document.getElementById('add-product-form').onsubmit = async (e) => {
             e.preventDefault();
+            
             const newProduct = {
                 name: document.getElementById('p-name').value,
                 price: parseFloat(document.getElementById('p-price').value),
                 category: document.getElementById('p-category').value,
                 stock: parseInt(document.getElementById('p-stock').value),
-                image: document.getElementById('p-image').value
+                image: document.getElementById('p-image').value,
+                createdAt: new Date()
             };
+
             try {
                 await addDoc(collection(db, "products"), newProduct);
-                alert("Product Added!");
-                e.target.reset();
-            } catch (err) { alert("Error: " + err.message); }
-        };
-
-        // Load Products with Edit/Delete Buttons
-        function loadProducts() {
-            onSnapshot(collection(db, "products"), (snapshot) => {
-                const container = document.getElementById('admin-product-list');
-                let html = `<table class="admin-table"><thead><tr><th>Img</th><th>Name/Price</th><th>Stock</th><th>Action</th></tr></thead><tbody>`;
-                snapshot.forEach(pDoc => {
-                    const p = pDoc.data();
-                    html += `<tr>
-                        <td><img src="${p.image}" style="width:40px;height:40px;object-fit:cover;border-radius:4px;"></td>
-                        <td><strong>${p.name}</strong><br>$${p.price.toFixed(2)}</td>
-                        <td>${p.stock}</td>
-                        <td style="display:flex; gap:10px;">
-                            <button class="btn btn-sm" style="background:#f1f5f9; color:#475569;" onclick="editProduct('${pDoc.id}', '${p.name}', ${p.price}, ${p.stock})">Edit</button>
-                            <button class="btn btn-sm" style="color:#ef4444;background:none;" onclick="deleteProduct('${pDoc.id}')"><i class="fa-solid fa-trash"></i></button>
-                        </td>
-                    </tr>`;
-                });
-                container.innerHTML = html + `</tbody></table>`;
-            });
-        }
-
-        // Edit Function
-        window.editProduct = async (id, oldName, oldPrice, oldStock) => {
-            const newPrice = prompt(`Enter new price for ${oldName}:`, oldPrice);
-            const newStock = prompt(`Enter new stock count for ${oldName}:`, oldStock);
-            
-            if (newPrice !== null && newStock !== null) {
-                try {
-                    await updateDoc(doc(db, "products", id), {
-                        price: parseFloat(newPrice),
-                        stock: parseInt(newStock)
-                    });
-                    alert("Updated Successfully!");
-                } catch (err) { alert("Update failed: " + err.message); }
+                alert("Product Added Successfully!");
+                e.target.reset(); // Clear form
+            } catch (error) {
+                console.error(error);
+                alert("Error: " + error.message);
             }
         };
 
-        window.deleteProduct = async (id) => {
-            if(confirm("Delete this product?")) await deleteDoc(doc(db, "products", id));
-        };
-
-        function loadOrders() {
-            onSnapshot(collection(db, "orders"), (snapshot) => {
-                const container = document.getElementById('admin-orders-list');
-                let html = `<table class="admin-table"><thead><tr><th>Customer</th><th>Total</th><th>Status</th><th>Action</th></tr></thead><tbody>`;
-                snapshot.forEach(oDoc => {
-                    const o = oDoc.data();
-                    const statusClass = o.status === 'Shipped' ? 'status-shipped' : 'status-pending';
-                    html += `<tr>
-                        <td>${o.customerName}<br><small>${o.customerEmail}</small></td>
-                        <td>$${o.subtotal.toFixed(2)}</td>
-                        <td><span class="status-badge ${statusClass}">${o.status}</span></td>
+        // --- D. LOAD INVENTORY (Real-time) ---
+        function loadInventory() {
+            onSnapshot(collection(db, "products"), (snapshot) => {
+                const list = document.getElementById('inventory-list');
+                list.innerHTML = ''; // Clear list to prevent duplicates
+                
+                snapshot.forEach(productDoc => {
+                    const p = productDoc.data();
+                    const row = document.createElement('tr');
+                    
+                    row.innerHTML = `
+                        <td><img src="${p.image}" onerror="this.src='https://via.placeholder.com/50'"></td>
+                        <td><strong>${p.name}</strong><br><small style="color:#666">${p.category}</small></td>
+                        <td>$${p.price}</td>
+                        <td>${p.stock}</td>
                         <td>
-                            <button class="btn btn-sm btn-primary" onclick="updateOrder('${oDoc.id}', 'Shipped')">Ship</button>
-                            <button class="btn btn-sm" style="color:#94a3b8;background:none;" onclick="deleteOrder('${oDoc.id}')"><i class="fa-solid fa-xmark"></i></button>
+                            <button class="btn btn-sm" style="background:#fee2e2; color:#ef4444;" onclick="deleteProduct('${productDoc.id}')">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
                         </td>
-                    </tr>`;
+                    `;
+                    list.appendChild(row);
                 });
-                container.innerHTML = html + `</tbody></table>`;
             });
         }
 
-        window.updateOrder = async (id, status) => { await updateDoc(doc(db, "orders", id), { status }); };
-        window.deleteOrder = async (id) => { if(confirm("Delete order?")) await deleteDoc(doc(db, "orders", id)); };
+        // --- E. DELETE FUNCTION ---
+        // We attach this to 'window' so the HTML onclick="" can find it
+        window.deleteProduct = async (id) => {
+            if(confirm("Are you sure you want to delete this item?")) {
+                await deleteDoc(doc(db, "products", id));
+            }
+        };
     </script>
 </body>
 </html>
