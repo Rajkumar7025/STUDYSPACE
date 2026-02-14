@@ -298,3 +298,32 @@ onAuthStateChanged(auth, (user) => {
 
 // Import setDoc since we used it above
 import { setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+// ==========================================
+// EXPORT CHECKOUT TO WINDOW (REQUIRED)
+// ==========================================
+window.openCheckout = function() {
+    console.log("Opening Checkout...");
+    if(cart.length === 0) return alert("Cart is empty!");
+    
+    const modal = document.getElementById('checkout-modal');
+    const overlay = document.getElementById('checkout-overlay');
+    const summary = document.getElementById('checkout-summary');
+    
+    // Calculate Total
+    const total = cart.reduce((sum, item) => sum + Number(item.price), 0);
+    
+    if(summary) summary.innerHTML = `
+        <div style="text-align:center; padding:15px; background:#f0fdf4; border-radius:8px; color:#166534; margin-bottom:15px;">
+            <h3 style="margin:0;">Total: $${total.toFixed(2)}</h3>
+            <p style="margin:5px 0 0 0;">${cart.length} items</p>
+        </div>
+    `;
+
+    if(modal) modal.classList.add('active'); 
+    if(overlay) overlay.classList.add('active');
+    
+    // Force close sidebar
+    document.getElementById('cart-sidebar').classList.remove('open');
+    document.getElementById('cart-overlay').classList.remove('open');
+}
