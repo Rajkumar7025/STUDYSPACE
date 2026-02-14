@@ -6,17 +6,11 @@ document.addEventListener("DOMContentLoaded", function() {
         .then(data => {
             document.getElementById("navbar-placeholder").innerHTML = data;
             
-            // Re-attach Hamburger Listener
-            const hamburger = document.getElementById('hamburger');
-            const mobileMenu = document.getElementById('mobile-menu');
-            if(hamburger) {
-                hamburger.addEventListener('click', () => {
-                    mobileMenu.classList.toggle('open');
-                });
-            }
-
-            // Trigger cart update (in case items are already in local storage)
-            if(window.updateCart) window.updateCart();
+            // INITIALIZE LISTENERS AFTER LOADING HTML
+            initializeNavbarEvents();
+            
+            // Highlight active link
+            setActiveLink();
         });
 
     // 2. Load Footer
@@ -27,50 +21,15 @@ document.addEventListener("DOMContentLoaded", function() {
         });
 });
 
-// =========================================
-// GLOBAL EVENT LISTENER (THE FIX)
-// =========================================
-document.addEventListener('click', function(e) {
-    
-    // 1. OPEN CART (Clicking the cart icon or wrapper)
-    if (e.target.closest('#open-cart-btn') || e.target.closest('.cart-icon-wrapper')) {
-        toggleCart(true);
-    }
-
-    // 2. CLOSE CART (Clicking the X or the Overlay)
-    if (e.target.closest('#close-cart-btn') || e.target.id === 'cart-overlay') {
-        toggleCart(false);
-    }
-
-    // 3. MOBILE MENU TOGGLE
-    if (e.target.closest('#hamburger')) {
-        const menu = document.getElementById('mobile-menu');
-        const icon = document.querySelector('#hamburger i');
-        menu.classList.toggle('open');
-        
-        if (menu.classList.contains('open')) {
-            icon.classList.remove('fa-bars');
-            icon.classList.add('fa-xmark');
-        } else {
-            icon.classList.remove('fa-xmark');
-            icon.classList.add('fa-bars');
-        }
-    }
-
-    // 4. CHECKOUT BUTTON (Inside the cart)
-    if (e.target.closest('#checkout-btn')) {
-         // Calls the function in script.js
-         if(window.openCheckout) window.openCheckout();
-    }
-});
-
-// Helper Function
-function toggleCart(show) {
-    const sidebar = document.getElementById('cart-sidebar');
+function initializeNavbarEvents() {
+    // A. Cart Sidebar Toggles
+    const openBtn = document.getElementById('open-cart-btn');
+    const closeBtn = document.getElementById('close-cart-btn');
     const overlay = document.getElementById('cart-overlay');
-    
-    if (sidebar && overlay) {
-        if(show) {
+    const sidebar = document.getElementById('cart-sidebar');
+
+    function toggleCart(open) {
+        if(open) {
             sidebar.classList.add('open');
             overlay.classList.add('open');
         } else {
@@ -78,14 +37,47 @@ function toggleCart(show) {
             overlay.classList.remove('open');
         }
     }
+
+    if(openBtn) openBtn.addEventListener('click', () => toggleCart(true));
+    if(closeBtn) closeBtn.addEventListener('click', () => toggleCart(false));
+    if(overlay) overlay.addEventListener('click', () => toggleCart(false));
+
+    // B. Checkout Button Listener (THE FIX)
+    const checkoutBtn = document.getElementById('checkout-btn');
+    if(checkoutBtn) {
+        checkoutBtn.addEventListener('click', () => {
+            // Check if window.openCheckout exists (it's in script.js)
+            if (typeof window.openCheckout === "function") {
+                window.openCheckout();
+            } else {
+                console.error("Checkout function not found! Make sure script.js is loaded.");
+                alert("Checkout system is loading... please wait a moment.");
+            }
+        });
+    }
+
+    // C. Mobile Menu
+    const hamburger = document.getElementById('hamburger');
+    const mobileMenu = document.getElementById('mobile-menu');
+    if(hamburger) {
+        hamburger.addEventListener('click', () => {
+            mobileMenu.classList.toggle('open');
+        });
+    }
+    
+    // D. Update Cart Count (if data exists)
+    if(localStorage.getItem('studySpaceCart')) {
+        const cart = JSON.parse(localStorage.getItem('studySpaceCart'));
+        const count = document.getElementById('cart-count');
+        if(count) count.innerText = cart.length;
+    }
 }
 
 function setActiveLink() {
     const path = window.location.pathname;
-    const page = path.split("/").pop();
+    const page = path.split("/").pop() || "index.html";
     const links = {
         "index.html": "link-home",
-        "": "link-home",
         "products.html": "link-products",
         "about.html": "link-about",
         "contact.html": "link-contact"
@@ -95,4 +87,3 @@ function setActiveLink() {
         if(link) link.classList.add("active");
     }
 }
-
