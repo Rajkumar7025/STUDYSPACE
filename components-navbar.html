@@ -8,11 +8,10 @@
             <li><a href="index.html" id="link-home">Home</a></li>
             <li><a href="products.html" id="link-products">Products</a></li>
             <li><a href="about.html" id="link-about">About</a></li>
-            <li><a href="contact.html" id="link-contact">Contact</a></li>
-        </ul>
+            <li><a href="contact.html" id="link-contact">Contact</a></li> </ul>
         
         <div class="nav-actions">
-            <div class="cart-icon-wrapper" id="open-cart-btn" onclick="document.getElementById('cart-sidebar').classList.add('open'); document.getElementById('cart-overlay').classList.add('open');">
+            <div class="cart-icon-wrapper" id="open-cart-btn">
                 <i class="fa-solid fa-cart-shopping"></i>
                 <span class="cart-count" id="cart-count">0</span>
             </div>
@@ -25,15 +24,15 @@
     <div class="mobile-menu" id="mobile-menu">
         <a href="index.html">Home</a>
         <a href="products.html">Products</a>
-        <a href="signin.html" class="btn btn-primary full-width">Sign In</a>
+        <a href="about.html">About</a>
+        <a href="contact.html">Contact</a> <a href="signin.html" class="btn btn-primary full-width">Sign In</a>
     </div>
 </nav>
 
 <div class="cart-sidebar" id="cart-sidebar">
     <div class="cart-header">
         <h3>Your Cart</h3>
-        <button id="close-cart-btn" style="background:none; border:none; font-size:1.2rem; cursor:pointer;" 
-                onclick="document.getElementById('cart-sidebar').classList.remove('open'); document.getElementById('cart-overlay').classList.remove('open');">
+        <button id="close-cart-btn" style="background:none; border:none; font-size:1.2rem; cursor:pointer;">
             <i class="fa-solid fa-xmark"></i>
         </button>
     </div>
@@ -46,9 +45,7 @@
             <span>Total:</span>
             <span id="cart-total">$0.00</span>
         </div>
-        <button class="btn btn-primary full-width" onclick="openCheckout()">Checkout</button>
+        <button class="btn btn-primary full-width" id="checkout-btn">Checkout</button>
     </div>
 </div>
-<div class="cart-overlay" id="cart-overlay" onclick="document.getElementById('cart-sidebar').classList.remove('open'); document.getElementById('cart-overlay').classList.remove('open');"></div>
-
-
+<div class="cart-overlay" id="cart-overlay"></div>
