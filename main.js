@@ -5,8 +5,18 @@ document.addEventListener("DOMContentLoaded", function() {
         .then(response => response.text())
         .then(data => {
             document.getElementById("navbar-placeholder").innerHTML = data;
-            setActiveLink();
-            // No need to initialize listeners here anymore because of Event Delegation below
+            
+            // Re-attach Hamburger Listener
+            const hamburger = document.getElementById('hamburger');
+            const mobileMenu = document.getElementById('mobile-menu');
+            if(hamburger) {
+                hamburger.addEventListener('click', () => {
+                    mobileMenu.classList.toggle('open');
+                });
+            }
+
+            // Trigger cart update (in case items are already in local storage)
+            if(window.updateCart) window.updateCart();
         });
 
     // 2. Load Footer
@@ -85,3 +95,4 @@ function setActiveLink() {
         if(link) link.classList.add("active");
     }
 }
+
