@@ -5,12 +5,7 @@ document.addEventListener("DOMContentLoaded", function() {
         .then(response => response.text())
         .then(data => {
             document.getElementById("navbar-placeholder").innerHTML = data;
-            
-            // INITIALIZE LISTENERS AFTER LOADING HTML
-            initializeNavbarEvents();
-            
-            // Highlight active link
-            setActiveLink();
+            initializeNavbar(); // Set up buttons
         });
 
     // 2. Load Footer
@@ -19,53 +14,75 @@ document.addEventListener("DOMContentLoaded", function() {
         .then(data => {
             document.getElementById("footer-placeholder").innerHTML = data;
         });
+
+    // 3. INJECT CHECKOUT MODAL (The Fix)
+    // Checks if modal exists; if not, adds it to the page.
+    if (!document.getElementById('checkout-modal')) {
+        const modalHTML = `
+        <div class="modal-overlay" id="checkout-overlay"></div>
+        <div class="checkout-modal" id="checkout-modal">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h2>Confirm Order</h2>
+                <button id="close-checkout-x" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+            </div>
+            
+            <div id="checkout-summary" style="margin-bottom:20px;"></div>
+
+            <form onsubmit="window.processPayment(event)">
+                <label style="display:block; margin-bottom:5px; font-weight:600;">Card Details</label>
+                <input type="text" placeholder="0000 0000 0000 0000" class="form-input" required maxlength="19">
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+                    <input type="text" placeholder="MM/YY" class="form-input" required maxlength="5">
+                    <input type="text" placeholder="CVC" class="form-input" required maxlength="3">
+                </div>
+                <button type="submit" class="btn btn-primary full-width" style="margin-top:15px;">Pay Now</button>
+            </form>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+    }
 });
 
-function initializeNavbarEvents() {
-    // A. Cart Sidebar Toggles
-    const openBtn = document.getElementById('open-cart-btn');
-    const closeBtn = document.getElementById('close-cart-btn');
-    const overlay = document.getElementById('cart-overlay');
-    const sidebar = document.getElementById('cart-sidebar');
-
-    function toggleCart(open) {
-        if(open) {
-            sidebar.classList.add('open');
-            overlay.classList.add('open');
-        } else {
-            sidebar.classList.remove('open');
-            overlay.classList.remove('open');
+// =========================================
+// UNIVERSAL EVENT LISTENER
+// =========================================
+function initializeNavbar() {
+    // We use a "Global Listener" so it catches clicks 
+    // even if the button loaded a millisecond later.
+    document.body.addEventListener('click', function(e) {
+        
+        // A. OPEN CART
+        if (e.target.closest('#open-cart-btn')) {
+            toggleCart(true);
         }
-    }
 
-    if(openBtn) openBtn.addEventListener('click', () => toggleCart(true));
-    if(closeBtn) closeBtn.addEventListener('click', () => toggleCart(false));
-    if(overlay) overlay.addEventListener('click', () => toggleCart(false));
+        // B. CLOSE CART
+        if (e.target.closest('#close-cart-btn') || e.target.id === 'cart-overlay') {
+            toggleCart(false);
+        }
 
-    // B. Checkout Button Listener (THE FIX)
-    const checkoutBtn = document.getElementById('checkout-btn');
-    if(checkoutBtn) {
-        checkoutBtn.addEventListener('click', () => {
-            // Check if window.openCheckout exists (it's in script.js)
+        // C. CHECKOUT BUTTON CLICKED
+        if (e.target.id === 'checkout-btn') {
             if (typeof window.openCheckout === "function") {
                 window.openCheckout();
             } else {
-                console.error("Checkout function not found! Make sure script.js is loaded.");
-                alert("Checkout system is loading... please wait a moment.");
+                alert("System is loading... please try again in 2 seconds.");
             }
-        });
-    }
+        }
 
-    // C. Mobile Menu
-    const hamburger = document.getElementById('hamburger');
-    const mobileMenu = document.getElementById('mobile-menu');
-    if(hamburger) {
-        hamburger.addEventListener('click', () => {
-            mobileMenu.classList.toggle('open');
-        });
-    }
-    
-    // D. Update Cart Count (if data exists)
+        // D. CLOSE CHECKOUT MODAL (X Button or Overlay)
+        if (e.target.id === 'close-checkout-x' || e.target.id === 'checkout-overlay') {
+            if (typeof window.closeCheckout === "function") {
+                window.closeCheckout();
+            }
+        }
+
+        // E. MOBILE MENU
+        if (e.target.closest('#hamburger')) {
+            document.getElementById('mobile-menu').classList.toggle('open');
+        }
+    });
+
+    // Update cart count immediately
     if(localStorage.getItem('studySpaceCart')) {
         const cart = JSON.parse(localStorage.getItem('studySpaceCart'));
         const count = document.getElementById('cart-count');
@@ -73,17 +90,16 @@ function initializeNavbarEvents() {
     }
 }
 
-function setActiveLink() {
-    const path = window.location.pathname;
-    const page = path.split("/").pop() || "index.html";
-    const links = {
-        "index.html": "link-home",
-        "products.html": "link-products",
-        "about.html": "link-about",
-        "contact.html": "link-contact"
-    };
-    if (links[page]) {
-        const link = document.getElementById(links[page]);
-        if(link) link.classList.add("active");
+function toggleCart(open) {
+    const sidebar = document.getElementById('cart-sidebar');
+    const overlay = document.getElementById('cart-overlay');
+    if(sidebar && overlay) {
+        if(open) {
+            sidebar.classList.add('open');
+            overlay.classList.add('open');
+        } else {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('open');
+        }
     }
 }
