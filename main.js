@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", function() {
         .then(response => response.text())
         .then(data => {
             document.getElementById("navbar-placeholder").innerHTML = data;
-            initializeNavbar(); // Set up buttons
+            updateCartBadge(); // Update badge number immediately
         });
 
     // 2. Load Footer
@@ -15,8 +15,8 @@ document.addEventListener("DOMContentLoaded", function() {
             document.getElementById("footer-placeholder").innerHTML = data;
         });
 
-    // 3. INJECT CHECKOUT MODAL (The Fix)
-    // Checks if modal exists; if not, adds it to the page.
+    // 3. INJECT CHECKOUT MODAL (The Universal Fix)
+    // This ensures the popup exists on Home, About, and Product pages
     if (!document.getElementById('checkout-modal')) {
         const modalHTML = `
         <div class="modal-overlay" id="checkout-overlay"></div>
@@ -43,46 +43,47 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 // =========================================
-// UNIVERSAL EVENT LISTENER
+// UNIVERSAL CLICK LISTENER
 // =========================================
-function initializeNavbar() {
-    // We use a "Global Listener" so it catches clicks 
-    // even if the button loaded a millisecond later.
-    document.body.addEventListener('click', function(e) {
-        
-        // A. OPEN CART
-        if (e.target.closest('#open-cart-btn')) {
-            toggleCart(true);
-        }
+document.body.addEventListener('click', function(e) {
+    
+    // A. OPEN CART
+    if (e.target.closest('#open-cart-btn')) {
+        const sidebar = document.getElementById('cart-sidebar');
+        const overlay = document.getElementById('cart-overlay');
+        if(sidebar) sidebar.classList.add('open');
+        if(overlay) overlay.classList.add('open');
+        renderCartItems(); // Refresh items when opening
+    }
 
-        // B. CLOSE CART
-        if (e.target.closest('#close-cart-btn') || e.target.id === 'cart-overlay') {
-            toggleCart(false);
-        }
+    // B. CLOSE CART (X Button or Overlay)
+    if (e.target.closest('#close-cart-btn') || e.target.id === 'cart-overlay') {
+        document.getElementById('cart-sidebar').classList.remove('open');
+        document.getElementById('cart-overlay').classList.remove('open');
+    }
 
-        // C. CHECKOUT BUTTON CLICKED
-        if (e.target.id === 'checkout-btn') {
-            if (typeof window.openCheckout === "function") {
-                window.openCheckout();
-            } else {
-                alert("System is loading... please try again in 2 seconds.");
-            }
+    // C. CHECKOUT BUTTON CLICKED
+    if (e.target.id === 'checkout-btn') {
+        if (typeof window.openCheckout === "function") {
+            window.openCheckout();
+        } else {
+            alert("Checkout is loading... if this fails, make sure script.js is linked in this HTML file.");
         }
+    }
 
-        // D. CLOSE CHECKOUT MODAL (X Button or Overlay)
-        if (e.target.id === 'close-checkout-x' || e.target.id === 'checkout-overlay') {
-            if (typeof window.closeCheckout === "function") {
-                window.closeCheckout();
-            }
-        }
+    // D. CLOSE CHECKOUT MODAL
+    if (e.target.id === 'close-checkout-x' || e.target.id === 'checkout-overlay') {
+        if (typeof window.closeCheckout === "function") window.closeCheckout();
+    }
 
-        // E. MOBILE MENU
-        if (e.target.closest('#hamburger')) {
-            document.getElementById('mobile-menu').classList.toggle('open');
-        }
-    });
+    // E. MOBILE MENU
+    if (e.target.closest('#hamburger')) {
+        document.getElementById('mobile-menu').classList.toggle('open');
+    }
+});
 
-    // Update cart count immediately
+// Helper: Update Badge
+function updateCartBadge() {
     if(localStorage.getItem('studySpaceCart')) {
         const cart = JSON.parse(localStorage.getItem('studySpaceCart'));
         const count = document.getElementById('cart-count');
@@ -90,16 +91,31 @@ function initializeNavbar() {
     }
 }
 
-function toggleCart(open) {
-    const sidebar = document.getElementById('cart-sidebar');
-    const overlay = document.getElementById('cart-overlay');
-    if(sidebar && overlay) {
-        if(open) {
-            sidebar.classList.add('open');
-            overlay.classList.add('open');
-        } else {
-            sidebar.classList.remove('open');
-            overlay.classList.remove('open');
-        }
+// Helper: Render Cart Items in Sidebar
+function renderCartItems() {
+    const container = document.getElementById('cart-items-container');
+    const totalEl = document.getElementById('cart-total');
+    let cart = JSON.parse(localStorage.getItem('studySpaceCart')) || [];
+    
+    if(container) {
+        container.innerHTML = '';
+        let total = 0;
+        if(cart.length === 0) container.innerHTML = "<p style='text-align:center; color:#888;'>Cart is empty</p>";
+        
+        cart.forEach((item, index) => {
+            total += Number(item.price);
+            container.innerHTML += `
+            <div style="display:flex; gap:10px; margin-bottom:10px; border-bottom:1px solid #eee; padding-bottom:5px;">
+                <img src="${item.image}" style="width:50px; height:50px; object-fit:cover; border-radius:4px;">
+                <div style="flex:1;">
+                    <div style="font-weight:bold; font-size:0.9rem;">${item.name}</div>
+                    <div style="font-size:0.8rem; color:#666;">$${Number(item.price).toFixed(2)}</div>
+                </div>
+                <button onclick="window.removeFromCart(${index})" style="color:red; background:none; border:none; cursor:pointer;">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            </div>`;
+        });
+        if(totalEl) totalEl.innerText = '$' + total.toFixed(2);
     }
 }
