@@ -327,3 +327,4 @@ window.openCheckout = function() {
     document.getElementById('cart-sidebar').classList.remove('open');
     document.getElementById('cart-overlay').classList.remove('open');
 }
+
